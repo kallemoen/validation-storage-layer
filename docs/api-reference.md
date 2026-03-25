@@ -412,6 +412,120 @@ Update the status of an existing listing.
 
 ---
 
+### Geography
+
+#### GET /api/geography/:country_code
+
+Browse the admin region hierarchy for a supported country. Returns the full region tree by default, or a filtered subset.
+
+**Role:** `development`, `collection`
+
+**Path parameters:**
+- `country_code` — ISO 3166-1 alpha-2 code (e.g., `PT`).
+
+**Query parameters:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `level` | integer | Return a flat list of regions at this admin level (1 through max level for the country) |
+| `parent` | string | Return the children of a specific region (case-insensitive name match) |
+
+If neither `level` nor `parent` is provided, the full hierarchy tree is returned along with level metadata (labels and counts).
+
+**Response (200) — default (full tree):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "country_code": "PT",
+    "levels": {
+      "1": { "label": "Distrito", "count": 20 },
+      "2": { "label": "Concelho", "count": 308 },
+      "3": { "label": "Freguesia", "count": 3092 }
+    },
+    "regions": [
+      { "name": "Lisboa", "level": 1, "children": [
+        { "name": "Lisboa", "level": 2, "children": [...] }
+      ]}
+    ]
+  }
+}
+```
+
+**Response (200) — filtered by `level`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "country_code": "PT",
+    "regions": [
+      { "name": "Lisboa", "level": 1 },
+      { "name": "Porto", "level": 1 }
+    ]
+  }
+}
+```
+
+**Response (200) — filtered by `parent`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "country_code": "PT",
+    "parent": "Lisboa",
+    "children": [
+      { "name": "Lisboa", "level": 2 },
+      { "name": "Sintra", "level": 2 }
+    ]
+  }
+}
+```
+
+**Response (404):** Country has no geography configuration.
+
+---
+
+#### GET /api/geography/:country_code/search
+
+Fuzzy-search for regions within a country. Returns matching regions with their full ancestry path.
+
+**Role:** `development`, `collection`
+
+**Path parameters:**
+- `country_code` — ISO 3166-1 alpha-2 code.
+
+**Query parameters:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `q` | string | **Required.** Search query (e.g., `"lisb"`, `"santo antonio"`). |
+| `level` | integer | Restrict results to a specific admin level. |
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "country_code": "PT",
+    "query": "lisb",
+    "count": 3,
+    "results": [
+      { "name": "Lisboa", "level": 1, "path": "Lisboa" },
+      { "name": "Lisboa", "level": 2, "path": "Lisboa > Lisboa" },
+      { "name": "Lisboa", "level": 3, "path": "Lisboa > Lisboa > Santa Maria Maior" }
+    ]
+  }
+}
+```
+
+**Response (404):** Country has no geography data.
+
+---
+
 ### Scraper Registry
 
 #### GET /api/scrapers
@@ -684,6 +798,8 @@ Query run receipts for recent scraper runs.
 | `/api/listings/check-urls` | POST | collection | Check URLs for duplicates |
 | `/api/listings/{id}/price` | PATCH | collection | Update price (auto history) |
 | `/api/listings/{id}/status` | PATCH | collection | Update listing status |
+| `/api/geography/:country_code` | GET | development, collection | Browse admin region hierarchy |
+| `/api/geography/:country_code/search` | GET | development, collection | Fuzzy-search for regions |
 | `/api/scrapers` | GET | development, collection, admin | Query scraper registry |
 | `/api/scrapers/register` | POST | development | Register a new scraper |
 | `/api/scrapers/{id}/run` | PATCH | collection | Record run results |

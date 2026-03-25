@@ -8,6 +8,7 @@ import { insertListing, DuplicateUrlError, queryListings } from '../../src/db/li
 import { storeRejection } from '../../src/db/rejections.js';
 import { COUNTRY_BOUNDS } from '../../src/validation/config/country-bounds.js';
 import { PRICE_RANGES } from '../../src/validation/config/price-ranges.js';
+import { loadGeographyLookup } from '../../src/validation/config/geography-lookup.js';
 import type { ListingInput } from '../../src/types/listing.js';
 import { enrichLocation } from '../../src/enrichment/location-enricher.js';
 
@@ -62,10 +63,13 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const geographyLookup = await loadGeographyLookup();
+
   const context = {
     scraperConfig: scraper,
     countryBounds: COUNTRY_BOUNDS,
     priceRanges: PRICE_RANGES,
+    geographyLookup,
   };
 
   const result = validateListing(input, context, 'live');

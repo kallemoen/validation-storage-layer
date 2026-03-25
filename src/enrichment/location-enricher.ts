@@ -1,6 +1,7 @@
 import type { ListingInput, LocationGranularity } from '../types/listing.js';
 import type { GeocodingResult } from './geocoding.js';
 import { getGeocodingProvider } from './geocoding.js';
+import { reverseGeocodePostGIS } from './postgis-geocoder.js';
 
 /**
  * Enriches location data on a listing based on what's already provided.
@@ -36,6 +37,24 @@ async function enrichFromCoordinates(
 ): Promise<ListingInput> {
   if (!input.latitude || !input.longitude) return input;
 
+  // For countries with reference polygon data, use PostGIS for canonical admin level names
+  if (input.country_code) {
+    try {
+      const postgisResult = await reverseGeocodePostGIS(input.country_code, input.latitude, input.longitude);
+      if (postgisResult) {
+        return {
+          ...input,
+          admin_level_1: input.admin_level_1 ?? postgisResult.admin_level_1 ?? null,
+          admin_level_2: input.admin_level_2 ?? postgisResult.admin_level_2 ?? null,
+          admin_level_3: input.admin_level_3 ?? postgisResult.admin_level_3 ?? null,
+        };
+      }
+    } catch {
+      // PostGIS failed or country has no polygon data — fall through to Mapbox
+    }
+  }
+
+  // Fallback to external geocoding provider (Mapbox)
   const result = await provider.reverseGeocode(input.latitude, input.longitude);
   if (!result) return input;
 

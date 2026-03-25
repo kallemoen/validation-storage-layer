@@ -63,6 +63,8 @@ Does the data make sense? These catch extraction and normalization errors that p
 | `coordinates_in_country` | `latitude`, `longitude` | If present, must fall within the bounding box of `country_code` | `{"field": "latitude", "rule": "coordinates_in_country", "value": 60.0, "expected": "36.96-42.15 for PT"}` |
 | `display_coordinates_in_country` | `display_latitude`, `display_longitude` | Must fall within the bounding box of `country_code` | Same format as above |
 | `price_currency_pair` | `price_amount`, `price_currency_code` | Both must be present or both must be null | `{"field": "price_currency_code", "rule": "price_currency_pair", "value": null, "detail": "price_amount and price_currency_code must both be present or both be null"}` |
+| `country_supported` | `country_code` | Country must have geography data loaded. Skipped if geography lookup is not initialized. | `{"field": "country_code", "rule": "country_supported", "value": "DE", "expected": "Supported countries: PT", "detail": "Country DE is not yet supported. Listings can only be submitted for countries with geography data loaded."}` |
+| `admin_levels_valid` | `admin_level_1` through `admin_level_N` | Each admin level value must match the reference data for the country. Validates parent hierarchy (e.g., admin_level_2 must be a child of the provided admin_level_1). Skipped if country has no geography data. | `{"field": "admin_level_2", "rule": "admin_levels_valid", "value": "Lisbona", "expected": "Valid Concelho for PT in Distrito \"Lisboa\"", "detail": "\"Lisbona\" not found. Did you mean \"Lisboa\"?"}` |
 
 ### Configured price ranges
 

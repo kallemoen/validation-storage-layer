@@ -7,6 +7,7 @@ import { getScraperById } from '../../src/db/scrapers.js';
 import { storeRejection } from '../../src/db/rejections.js';
 import { COUNTRY_BOUNDS } from '../../src/validation/config/country-bounds.js';
 import { PRICE_RANGES } from '../../src/validation/config/price-ranges.js';
+import { loadGeographyLookup } from '../../src/validation/config/geography-lookup.js';
 
 export default withAuth(['development'], async (req, res) => {
   if (req.method !== 'POST') {
@@ -33,10 +34,13 @@ export default withAuth(['development'], async (req, res) => {
       return;
     }
 
+    const geographyLookup = await loadGeographyLookup();
+
     const context = {
       scraperConfig: scraper,
       countryBounds: COUNTRY_BOUNDS,
       priceRanges: PRICE_RANGES,
+      geographyLookup,
     };
 
     const result = validateListing(input, context, 'test');

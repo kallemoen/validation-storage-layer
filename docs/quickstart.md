@@ -104,7 +104,27 @@ curl -X POST https://your-api.vercel.app/api/scrapers/register \
 
 Save the returned `config_id` — you'll need it for all subsequent calls.
 
-### Step 2: Test your scraper output
+### Step 2: Query geography data
+
+For countries with geography data loaded (currently PT), admin level values are validated against reference data. Before extracting location fields, query the geography API to see what values are valid:
+
+```bash
+# Browse the full admin hierarchy for Portugal
+curl "https://your-api.vercel.app/api/geography/PT" \
+  -H "Authorization: Bearer $DEV_TOKEN"
+
+# List all level-1 regions (Distritos)
+curl "https://your-api.vercel.app/api/geography/PT?level=1" \
+  -H "Authorization: Bearer $DEV_TOKEN"
+
+# Fuzzy-search for a region name
+curl "https://your-api.vercel.app/api/geography/PT/search?q=lisb" \
+  -H "Authorization: Bearer $DEV_TOKEN"
+```
+
+Use these values to map scraped location strings to the exact names the validation layer expects. Misspellings will be rejected with a "Did you mean?" suggestion.
+
+### Step 3: Test your scraper output
 
 Submit listings in test mode to iterate on your extraction logic:
 
@@ -140,7 +160,7 @@ If rejected, the response tells you exactly what's wrong:
 }
 ```
 
-### Step 3: Batch test
+### Step 4: Batch test
 
 Once individual listings pass, test a batch:
 
@@ -153,7 +173,7 @@ curl -X POST https://your-api.vercel.app/api/validate/test-batch \
 
 Check the `summary` to see your overall pass rate.
 
-### Step 4: Activate the scraper
+### Step 5: Activate the scraper
 
 Once satisfied with test results, update the scraper status to `active`:
 

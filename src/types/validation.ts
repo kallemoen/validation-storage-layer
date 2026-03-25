@@ -33,6 +33,8 @@ export interface BatchSummary {
   top_rejection_reasons: Array<{ rule: string; count: number }>;
 }
 
+import type { GeographyLookup } from '../validation/config/geography-lookup.js';
+
 export interface ValidationContext {
   scraperConfig: {
     config_id: string;
@@ -42,6 +44,7 @@ export interface ValidationContext {
   };
   countryBounds: Record<string, { minLat: number; maxLat: number; minLng: number; maxLng: number }>;
   priceRanges: Record<string, { min: number; max: number }>;
+  geographyLookup?: GeographyLookup;
 }
 
 export type ValidationRule = {
