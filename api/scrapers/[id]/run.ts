@@ -1,0 +1,48 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { withAuth } from '../../../src/middleware/auth.js';
+import { handleError } from '../../../src/middleware/error-handler.js';
+import { success, error } from '../../../src/lib/response.js';
+import { RunResultSchema } from '../../../src/types/operations.js';
+import { updateScraperRunResult } from '../../../src/db/scrapers.js';
+import { storeRunReceipt } from '../../../src/db/run-receipts.js';
+
+export default withAuth(['collection'], async (req, res) => {
+  if (req.method !== 'PATCH') {
+    error(res, 'METHOD_NOT_ALLOWED', 'Only PATCH is allowed', 405);
+    return;
+  }
+
+  try {
+    const configId = req.query.id as string;
+    if (!configId) {
+      error(res, 'INVALID_REQUEST', 'Scraper config ID is required');
+      return;
+    }
+
+    const parsed = RunResultSchema.safeParse(req.body);
+    if (!parsed.success) {
+      error(res, 'INVALID_REQUEST', 'Invalid request body', 400, parsed.error.issues);
+      return;
+    }
+
+    // Store the run receipt
+    const receipt = await storeRunReceipt(configId, parsed.data);
+
+    // Update scraper registry
+    const failureAction = parsed.data.status === 'success' ? 'reset' : 'increment';
+    const result = await updateScraperRunResult(configId, {
+      status: parsed.data.status,
+      listings_accepted: parsed.data.listings_accepted,
+      failure_count_action: failureAction,
+    });
+
+    if (!result) {
+      error(res, 'NOT_FOUND', `Scraper config '${configId}' not found`, 404);
+      return;
+    }
+
+    success(res, { receipt_id: receipt.id, ...result });
+  } catch (err) {
+    handleError(res, err);
+  }
+});
