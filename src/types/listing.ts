@@ -32,8 +32,6 @@ export const ListingInputSchema = z.object({
   address_line_2: z.string().max(500).nullable().optional(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
-  display_latitude: z.number(),
-  display_longitude: z.number(),
   location_granularity: z.enum(LOCATION_GRANULARITIES),
   price_amount: z.number().int().nullable().optional(),
   price_currency_code: z.string().length(3).nullable().optional(),
@@ -54,7 +52,12 @@ export const ListingInputSchema = z.object({
 
 export type ListingInput = z.infer<typeof ListingInputSchema>;
 
-export interface ListingRow extends ListingInput {
+export interface ListingInsertRow extends ListingInput {
+  display_latitude: number;
+  display_longitude: number;
+}
+
+export interface ListingRow extends ListingInsertRow {
   listing_status: ListingStatus;
   price_history: PriceHistoryEntry[];
   created_at: string;

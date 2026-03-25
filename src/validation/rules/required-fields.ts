@@ -7,8 +7,6 @@ const REQUIRED_FIELDS = [
   'listing_type',
   'country_code',
   'property_type',
-  'display_latitude',
-  'display_longitude',
   'location_granularity',
   'raw_data',
 ];

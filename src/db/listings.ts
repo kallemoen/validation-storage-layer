@@ -1,7 +1,7 @@
 import { getSupabaseClient } from './client.js';
-import type { ListingInput, PriceHistoryEntry } from '../types/listing.js';
+import type { ListingInput, ListingInsertRow, PriceHistoryEntry } from '../types/listing.js';
 
-export async function insertListing(input: ListingInput): Promise<{ id: string }> {
+export async function insertListing(input: ListingInsertRow): Promise<{ id: string }> {
   const client = getSupabaseClient();
   const { error } = await client.from('listings').insert({
     listing_id: input.listing_id,
@@ -50,7 +50,7 @@ export async function insertListing(input: ListingInput): Promise<{ id: string }
   return { id: input.listing_id };
 }
 
-export async function insertListingsBatch(inputs: ListingInput[]): Promise<{ inserted: number; duplicates: string[] }> {
+export async function insertListingsBatch(inputs: ListingInsertRow[]): Promise<{ inserted: number; duplicates: string[] }> {
   const client = getSupabaseClient();
   const duplicates: string[] = [];
   let inserted = 0;

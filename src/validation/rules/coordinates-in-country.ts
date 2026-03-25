@@ -42,15 +42,3 @@ export const coordinatesInCountry: ValidationRule = {
     return checkCoords(input.latitude, input.longitude, countryCode, 'latitude', 'longitude');
   },
 };
-
-export const displayCoordinatesInCountry: ValidationRule = {
-  name: 'display_coordinates_in_country',
-  check(input) {
-    const countryCode = input.country_code as string;
-    if (!countryCode) return [];
-    return checkCoords(
-      input.display_latitude, input.display_longitude,
-      countryCode, 'display_latitude', 'display_longitude',
-    );
-  },
-};
