@@ -3,15 +3,28 @@ import type { AdminRegion, AdminLevelConfig } from '../types/geography.js';
 
 export async function getRegionsForCountry(countryCode: string): Promise<AdminRegion[]> {
   const client = getSupabaseClient();
-  const { data, error } = await client
-    .from('admin_regions')
-    .select('id, country_code, level, name, name_ascii, parent_id, external_id')
-    .eq('country_code', countryCode)
-    .order('level')
-    .order('name');
+  const allRegions: AdminRegion[] = [];
+  const pageSize = 1000;
+  let offset = 0;
 
-  if (error) throw new Error(`Failed to load admin regions: ${error.message}`);
-  return data ?? [];
+  while (true) {
+    const { data, error } = await client
+      .from('admin_regions')
+      .select('id, country_code, level, name, name_ascii, parent_id, external_id')
+      .eq('country_code', countryCode)
+      .order('level')
+      .order('name')
+      .range(offset, offset + pageSize - 1);
+
+    if (error) throw new Error(`Failed to load admin regions: ${error.message}`);
+    if (!data || data.length === 0) break;
+
+    allRegions.push(...data);
+    if (data.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  return allRegions;
 }
 
 export async function getAdminLevelConfig(countryCode: string): Promise<AdminLevelConfig | null> {
