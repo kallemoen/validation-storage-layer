@@ -8,6 +8,7 @@ import { insertListingsBatch } from '../../src/db/listings.js';
 import { storeRejection } from '../../src/db/rejections.js';
 import { COUNTRY_BOUNDS } from '../../src/validation/config/country-bounds.js';
 import { PRICE_RANGES } from '../../src/validation/config/price-ranges.js';
+import { loadGeographyLookup } from '../../src/validation/config/geography-lookup.js';
 import type { ListingInput } from '../../src/types/listing.js';
 import { enrichLocation } from '../../src/enrichment/location-enricher.js';
 
@@ -43,10 +44,13 @@ export default withAuth(['collection'], async (req, res) => {
       return;
     }
 
+    const geographyLookup = await loadGeographyLookup();
+
     const context = {
       scraperConfig: scraper,
       countryBounds: COUNTRY_BOUNDS,
       priceRanges: PRICE_RANGES,
+      geographyLookup,
     };
 
     const batchResult = validateBatch(body.listings as Record<string, unknown>[], context, 'live');

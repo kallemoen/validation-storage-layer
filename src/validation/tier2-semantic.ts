@@ -6,8 +6,11 @@ import { roomRanges } from './rules/room-ranges.js';
 import { areaRange } from './rules/area-range.js';
 import { coordinatesInCountry, displayCoordinatesInCountry } from './rules/coordinates-in-country.js';
 import { priceCurrencyPair } from './rules/price-currency-pair.js';
+import { countrySupported } from './rules/country-supported.js';
+import { adminLevelsValid } from './rules/admin-levels-valid.js';
 
 export const tier2Rules: ValidationRule[] = [
+  countrySupported,
   pricePositive,
   pricePlausible,
   currencyMatchesConfig,
@@ -16,4 +19,5 @@ export const tier2Rules: ValidationRule[] = [
   coordinatesInCountry,
   displayCoordinatesInCountry,
   priceCurrencyPair,
+  adminLevelsValid,
 ];

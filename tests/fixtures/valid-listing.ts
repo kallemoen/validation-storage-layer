@@ -1,4 +1,6 @@
 import type { ValidationContext } from '../../src/types/validation.js';
+import { createGeographyLookup } from '../../src/validation/config/geography-lookup.js';
+import type { AdminLevelConfig, AdminRegion } from '../../src/types/geography.js';
 
 /** A fully valid Portuguese rental listing */
 export function makeValidListing(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -11,8 +13,8 @@ export function makeValidListing(overrides: Record<string, unknown> = {}): Recor
     country_code: 'PT',
     admin_level_1: 'Lisboa',
     admin_level_2: 'Lisboa',
-    admin_level_3: 'Lisboa',
-    admin_level_4: 'Santo António',
+    admin_level_3: 'Santa Maria Maior',
+    admin_level_4: null,
     postal_code: '1150-123',
     address_line_1: 'Rua da Alegria 45',
     address_line_2: '3o Andar',
@@ -50,6 +52,22 @@ export function makeValidSaleListing(overrides: Record<string, unknown> = {}): R
   });
 }
 
+const ptConfig: AdminLevelConfig = {
+  country_code: 'PT',
+  level_1_label: 'Distrito',
+  level_2_label: 'Concelho',
+  level_3_label: 'Freguesia',
+  level_4_label: null,
+  max_level: 3,
+};
+
+const ptRegions: AdminRegion[] = [
+  { id: 1, country_code: 'PT', level: 1, name: 'Lisboa', name_ascii: 'Lisboa', parent_id: null, external_id: null },
+  { id: 2, country_code: 'PT', level: 2, name: 'Lisboa', name_ascii: 'Lisboa', parent_id: 1, external_id: null },
+  { id: 3, country_code: 'PT', level: 3, name: 'Santa Maria Maior', name_ascii: 'Santa Maria Maior', parent_id: 2, external_id: null },
+  { id: 4, country_code: 'PT', level: 3, name: 'Misericórdia', name_ascii: 'Misericordia', parent_id: 2, external_id: null },
+];
+
 export function makeValidContext(overrides: Partial<ValidationContext> = {}): ValidationContext {
   return {
     scraperConfig: {
@@ -65,6 +83,7 @@ export function makeValidContext(overrides: Partial<ValidationContext> = {}): Va
       'PT:rent:monthly:EUR': { min: 10000, max: 5000000 },
       'PT:sale:EUR': { min: 100000, max: 5000000000 },
     },
+    geographyLookup: createGeographyLookup([ptConfig], ptRegions),
     ...overrides,
   };
 }

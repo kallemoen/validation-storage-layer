@@ -16,7 +16,12 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@turf/centroid": "^7.3.4",
+    "@turf/helpers": "^7.3.4",
+    "@turf/simplify": "^7.3.4",
     "@types/node": "^22.0.0",
+    "@types/proj4": "^2.5.6",
+    "proj4": "^2.20.4",
     "typescript": "^5.7.0",
     "vercel": "^41.0.0",
     "vitest": "^3.0.0"
