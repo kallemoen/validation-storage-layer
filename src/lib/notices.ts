@@ -22,6 +22,12 @@ const ALL_NOTICES: Notice[] = [
       'display_latitude and display_longitude are now server-computed. Remove these fields from your payload — any values you send will be ignored.',
     expires: '2026-04-08',
   },
+  {
+    id: 'location-mode-exclusive',
+    message:
+      'Location modes are now mutually exclusive. Coordinate mode (granularity "coordinates"/"address"): send only lat/lng, system backfills admin levels. Admin level mode (granularity "admin_level_*"): send only admin_level_* fields, system generates display coordinates. Sending both will be rejected.',
+    expires: '2026-04-08',
+  },
 ];
 
 export function getActiveNotices(): string[] {

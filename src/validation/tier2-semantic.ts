@@ -8,9 +8,11 @@ import { coordinatesInCountry } from './rules/coordinates-in-country.js';
 import { priceCurrencyPair } from './rules/price-currency-pair.js';
 import { countrySupported } from './rules/country-supported.js';
 import { adminLevelsValid } from './rules/admin-levels-valid.js';
+import { locationModeExclusive } from './rules/location-mode-exclusive.js';
 
 export const tier2Rules: ValidationRule[] = [
   countrySupported,
+  locationModeExclusive,
   pricePositive,
   pricePlausible,
   currencyMatchesConfig,
