@@ -77,8 +77,20 @@ async function computeDisplayCoordinates(input: ListingInput): Promise<ListingIn
     return { ...input, display_latitude: input.latitude, display_longitude: input.longitude };
   }
 
-  // Cannot compute — return without display coords (DB NOT NULL will reject)
-  return input as ListingInsertRow;
+  throw new DisplayCoordinateError(input.listing_id, granularity);
+}
+
+export class DisplayCoordinateError extends Error {
+  constructor(
+    public readonly listingId: string,
+    public readonly granularity: string,
+  ) {
+    super(
+      `Cannot compute display coordinates for listing ${listingId} ` +
+      `(granularity: ${granularity}). Ensure coordinates or admin levels are provided.`,
+    );
+    this.name = 'DisplayCoordinateError';
+  }
 }
 
 async function enrichFromCoordinates(

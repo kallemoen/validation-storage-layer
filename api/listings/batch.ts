@@ -10,7 +10,7 @@ import { COUNTRY_BOUNDS } from '../../src/validation/config/country-bounds.js';
 import { PRICE_RANGES } from '../../src/validation/config/price-ranges.js';
 import { loadGeographyLookup } from '../../src/validation/config/geography-lookup.js';
 import type { ListingInput } from '../../src/types/listing.js';
-import { enrichLocation } from '../../src/enrichment/location-enricher.js';
+import { enrichLocation, DisplayCoordinateError } from '../../src/enrichment/location-enricher.js';
 
 const MAX_BATCH_SIZE = 100;
 
@@ -77,9 +77,25 @@ export default withAuth(['collection'], async (req, res) => {
       .filter(Boolean);
 
     let insertResult = { inserted: 0, duplicates: [] as string[] };
+    const enrichmentErrors: Array<{ listing_id: string; error: string }> = [];
     if (acceptedListings.length > 0) {
-      const enriched = await Promise.all(acceptedListings.map(l => enrichLocation(l)));
-      insertResult = await insertListingsBatch(enriched);
+      const enrichResults = await Promise.allSettled(acceptedListings.map(l => enrichLocation(l)));
+      const enriched = enrichResults
+        .map((r, i) => {
+          if (r.status === 'fulfilled') return r.value;
+          const lid = acceptedListings[i].listing_id;
+          const msg = r.reason instanceof DisplayCoordinateError
+            ? r.reason.message
+            : `Enrichment failed: ${r.reason?.message ?? 'unknown error'}`;
+          console.error(`Enrichment failed for ${lid}: ${msg}`);
+          enrichmentErrors.push({ listing_id: lid, error: msg });
+          return null;
+        })
+        .filter(Boolean) as import('../../src/types/listing.js').ListingInsertRow[];
+
+      if (enriched.length > 0) {
+        insertResult = await insertListingsBatch(enriched);
+      }
     }
 
     success(res, {
@@ -87,6 +103,7 @@ export default withAuth(['collection'], async (req, res) => {
       storage: {
         inserted: insertResult.inserted,
         duplicates: insertResult.duplicates,
+        ...(enrichmentErrors.length > 0 && { enrichment_errors: enrichmentErrors }),
       },
     }, 201);
   } catch (err) {

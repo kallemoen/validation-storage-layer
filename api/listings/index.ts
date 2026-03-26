@@ -10,7 +10,7 @@ import { COUNTRY_BOUNDS } from '../../src/validation/config/country-bounds.js';
 import { PRICE_RANGES } from '../../src/validation/config/price-ranges.js';
 import { loadGeographyLookup } from '../../src/validation/config/geography-lookup.js';
 import type { ListingInput } from '../../src/types/listing.js';
-import { enrichLocation } from '../../src/enrichment/location-enricher.js';
+import { enrichLocation, DisplayCoordinateError } from '../../src/enrichment/location-enricher.js';
 
 export default withAuth(['development', 'collection', 'admin'], async (req, res) => {
   try {
@@ -88,6 +88,10 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
   } catch (err) {
     if (err instanceof DuplicateUrlError) {
       error(res, 'DUPLICATE', err.message, 409);
+      return;
+    }
+    if (err instanceof DisplayCoordinateError) {
+      error(res, 'ENRICHMENT_FAILED', err.message);
       return;
     }
     throw err;
