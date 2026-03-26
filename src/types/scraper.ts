@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SCRAPER_STATUSES = ['active', 'paused', 'broken', 'testing'] as const;
+export const SCRAPER_STATUSES = ['active', 'paused', 'broken', 'testing', 'degraded'] as const;
 export const RUN_STATUSES = ['success', 'partial', 'failure'] as const;
 
 export type ScraperStatus = (typeof SCRAPER_STATUSES)[number];
@@ -31,4 +31,10 @@ export interface ScraperRow {
   broken_at: string | null;
   repair_count: number;
   config: Record<string, unknown>;
+  acceptance_rate: number | null;
+  last_batch_at: string | null;
+  last_batch_submitted: number | null;
+  last_batch_accepted: number | null;
+  top_rejection_rule: string | null;
+  degraded_at: string | null;
 }

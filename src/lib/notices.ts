@@ -40,6 +40,12 @@ const ALL_NOTICES: Notice[] = [
       'Greece (GR) is now supported. Listings can be submitted with country_code "GR" — admin levels are validated against official administrative boundaries (Region → Regional Unit → Municipality). Both Latin transliterations and Greek script names are accepted.',
     expires: '2026-04-09',
   },
+  {
+    id: 'scraper-health-tracking',
+    message:
+      'The batch endpoint now tracks scraper health based on validation outcomes. Scrapers with acceptance rate below 70% are marked "degraded", below 30% "broken". Scrapers that don\'t check in for 24 hours are auto-marked "broken". Auto-recovery occurs when a healthy batch (>= 70% acceptance) is submitted. Query the scraper registry for acceptance_rate and top_rejection_rule fields.',
+    expires: '2026-04-09',
+  },
 ];
 
 export function getActiveNotices(): string[] {

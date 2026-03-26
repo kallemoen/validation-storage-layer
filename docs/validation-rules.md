@@ -183,6 +183,43 @@ Each error/warning object:
 
 ---
 
+## Scraper Health Tracking
+
+The batch endpoint (`POST /api/listings/batch`) automatically tracks scraper health based on validation outcomes. Health metrics are written to the `scraper_registry` after every batch.
+
+### Quality thresholds
+
+| Acceptance Rate | Transition | Rationale |
+|---|---|---|
+| >= 70% | Stay `active`, or `degraded` → `active` (auto-recover) | Healthy batch |
+| < 70% and >= 30% | `active` → `degraded` | Significant quality drop, still producing some data |
+| < 30% | `active`/`degraded` → `broken` | Extracting garbage |
+
+**Minimum batch size guard:** Batches with fewer than 3 listings skip state transitions (not statistically meaningful). Health columns are still updated.
+
+### Staleness detection
+
+Every active or degraded scraper must check in at least once per day — either via the batch endpoint (submitting listings) or the run endpoint (reporting a run result). A daily cron job (03:30 UTC) marks stale scrapers as `broken`.
+
+`testing` and `paused` scrapers are excluded from both quality and staleness checks.
+
+### Recovery
+
+When a `degraded` scraper submits a healthy batch (>= 70% acceptance rate), it automatically recovers to `active`. `broken` scrapers require a manual status change via `PATCH /api/scrapers/{id}/status`.
+
+### Health columns in scraper registry
+
+| Column | Type | Description |
+|---|---|---|
+| `acceptance_rate` | real | Acceptance rate from the most recent batch (0.0 - 1.0) |
+| `last_batch_at` | timestamptz | When the last batch was processed |
+| `last_batch_submitted` | integer | Number of listings submitted in the last batch |
+| `last_batch_accepted` | integer | Number of listings accepted in the last batch |
+| `top_rejection_rule` | varchar(100) | Most common rejection rule in the last batch |
+| `degraded_at` | timestamptz | When the scraper entered `degraded` status |
+
+---
+
 ## Adding New Rules
 
 To add a new validation rule:
