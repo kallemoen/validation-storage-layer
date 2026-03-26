@@ -20,8 +20,6 @@ export function makeValidListing(overrides: Record<string, unknown> = {}): Recor
     address_line_2: '3o Andar',
     latitude: 38.7174,
     longitude: -9.1453,
-    display_latitude: 38.7191,
-    display_longitude: -9.1438,
     location_granularity: 'coordinates',
     price_amount: 170000, // 1700.00 EUR in cents
     price_currency_code: 'EUR',

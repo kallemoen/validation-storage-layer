@@ -17,8 +17,6 @@ const FIELD_TYPES: Record<string, 'string' | 'number' | 'integer' | 'object' | '
   address_line_2: 'string',
   latitude: 'number',
   longitude: 'number',
-  display_latitude: 'number',
-  display_longitude: 'number',
   location_granularity: 'string',
   price_amount: 'integer',
   price_currency_code: 'string',

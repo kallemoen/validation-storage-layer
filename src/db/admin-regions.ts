@@ -70,6 +70,23 @@ export async function findRegionByPoint(
   return data[0];
 }
 
+export async function getRandomPointInRegion(
+  countryCode: string,
+  level: number,
+  name: string,
+): Promise<{ lat: number; lng: number } | null> {
+  const client = getSupabaseClient();
+  const { data, error } = await client.rpc('random_point_in_region', {
+    p_country_code: countryCode,
+    p_level: level,
+    p_name: name,
+  });
+
+  if (error) throw new Error(`Random point lookup failed: ${error.message}`);
+  if (!data || data.length === 0) return null;
+  return { lat: data[0].lat, lng: data[0].lng };
+}
+
 export async function searchRegions(
   countryCode: string,
   query: string,

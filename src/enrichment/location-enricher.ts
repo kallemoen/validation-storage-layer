@@ -1,34 +1,84 @@
 import type { ListingInput, LocationGranularity } from '../types/listing.js';
+import type { ListingInsertRow } from '../types/listing.js';
 import type { GeocodingResult } from './geocoding.js';
 import { getGeocodingProvider } from './geocoding.js';
 import { reverseGeocodePostGIS } from './postgis-geocoder.js';
+import { getRandomPointInRegion } from '../db/admin-regions.js';
 
 /**
  * Enriches location data on a listing based on what's already provided.
- * Never fabricates data more granular than the source.
+ * Computes display coordinates server-side (scrapers cannot set them).
  * Non-blocking: if geocoding fails, returns the listing unchanged.
  */
-export async function enrichLocation(input: ListingInput): Promise<ListingInput> {
-  const provider = getGeocodingProvider();
-  if (!provider) return input;
+export async function enrichLocation(input: ListingInput): Promise<ListingInsertRow> {
+  // Strip any display coordinates from scraper input — these are server-computed
+  const { display_latitude, display_longitude, ...cleaned } = input as ListingInput & {
+    display_latitude?: unknown;
+    display_longitude?: unknown;
+  };
 
+  const provider = getGeocodingProvider();
+  let enriched: ListingInput = cleaned;
+
+  if (provider) {
+    const granularity = cleaned.location_granularity;
+    try {
+      switch (granularity) {
+        case 'coordinates':
+          enriched = await enrichFromCoordinates(cleaned, provider);
+          break;
+        case 'address':
+          enriched = await enrichFromAddress(cleaned, provider);
+          break;
+        default:
+          break;
+      }
+    } catch (err) {
+      console.error('Location enrichment failed, proceeding without enrichment:', err);
+    }
+  }
+
+  return computeDisplayCoordinates(enriched);
+}
+
+async function computeDisplayCoordinates(input: ListingInput): Promise<ListingInsertRow> {
   const granularity = input.location_granularity;
 
-  try {
-    switch (granularity) {
-      case 'coordinates':
-        return await enrichFromCoordinates(input, provider);
-      case 'address':
-        return await enrichFromAddress(input, provider);
-      default:
-        // For postal_code, admin_level_*, and country — skip enrichment for now.
-        // These would require boundary polygon data to enrich properly.
-        return input;
+  // Exact coordinate modes: display = exact coords
+  if (granularity === 'coordinates' || granularity === 'address') {
+    if (input.latitude != null && input.longitude != null) {
+      return { ...input, display_latitude: input.latitude, display_longitude: input.longitude };
     }
-  } catch (err) {
-    console.error('Location enrichment failed, proceeding without enrichment:', err);
-    return input;
   }
+
+  // Admin level modes: display = random point in most granular polygon
+  const adminLevels: Array<{ level: number; name: string | null | undefined }> = [
+    { level: 4, name: input.admin_level_4 },
+    { level: 3, name: input.admin_level_3 },
+    { level: 2, name: input.admin_level_2 },
+    { level: 1, name: input.admin_level_1 },
+  ];
+
+  for (const { level, name } of adminLevels) {
+    if (name) {
+      try {
+        const point = await getRandomPointInRegion(input.country_code, level, name);
+        if (point) {
+          return { ...input, display_latitude: point.lat, display_longitude: point.lng };
+        }
+      } catch {
+        // Continue to next level if this one fails
+      }
+    }
+  }
+
+  // Fallback: if we have any coords at all, use them
+  if (input.latitude != null && input.longitude != null) {
+    return { ...input, display_latitude: input.latitude, display_longitude: input.longitude };
+  }
+
+  // Cannot compute — return without display coords (DB NOT NULL will reject)
+  return input as ListingInsertRow;
 }
 
 async function enrichFromCoordinates(
