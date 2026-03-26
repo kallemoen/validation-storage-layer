@@ -10,7 +10,7 @@ export async function getRegionsForCountry(countryCode: string): Promise<AdminRe
   while (true) {
     const { data, error } = await client
       .from('admin_regions')
-      .select('id, country_code, level, name, name_ascii, parent_id, external_id')
+      .select('id, country_code, level, name, name_ascii, name_local, parent_id, external_id')
       .eq('country_code', countryCode)
       .order('level')
       .order('name')
@@ -100,7 +100,7 @@ export async function searchRegions(
 
   let q = client
     .from('admin_regions')
-    .select('id, country_code, level, name, name_ascii, parent_id, external_id')
+    .select('id, country_code, level, name, name_ascii, name_local, parent_id, external_id')
     .eq('country_code', countryCode)
     .ilike('name_ascii', `%${normalizedQuery}%`)
     .order('level')

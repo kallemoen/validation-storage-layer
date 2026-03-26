@@ -60,10 +60,10 @@ const ptConfig: AdminLevelConfig = {
 };
 
 const ptRegions: AdminRegion[] = [
-  { id: 1, country_code: 'PT', level: 1, name: 'Lisboa', name_ascii: 'Lisboa', parent_id: null, external_id: null },
-  { id: 2, country_code: 'PT', level: 2, name: 'Lisboa', name_ascii: 'Lisboa', parent_id: 1, external_id: null },
-  { id: 3, country_code: 'PT', level: 3, name: 'Santa Maria Maior', name_ascii: 'Santa Maria Maior', parent_id: 2, external_id: null },
-  { id: 4, country_code: 'PT', level: 3, name: 'Misericórdia', name_ascii: 'Misericordia', parent_id: 2, external_id: null },
+  { id: 1, country_code: 'PT', level: 1, name: 'Lisboa', name_ascii: 'Lisboa', name_local: null, parent_id: null, external_id: null },
+  { id: 2, country_code: 'PT', level: 2, name: 'Lisboa', name_ascii: 'Lisboa', name_local: null, parent_id: 1, external_id: null },
+  { id: 3, country_code: 'PT', level: 3, name: 'Santa Maria Maior', name_ascii: 'Santa Maria Maior', name_local: null, parent_id: 2, external_id: null },
+  { id: 4, country_code: 'PT', level: 3, name: 'Misericórdia', name_ascii: 'Misericordia', name_local: null, parent_id: 2, external_id: null },
 ];
 
 export function makeValidContext(overrides: Partial<ValidationContext> = {}): ValidationContext {

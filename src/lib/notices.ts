@@ -34,6 +34,12 @@ const ALL_NOTICES: Notice[] = [
       'Location modes are now mutually exclusive. Coordinate mode (granularity "coordinates"/"address"): send only lat/lng, system backfills admin levels. Admin level mode (granularity "admin_level_*"): send only admin_level_* fields, system generates display coordinates. Sending both will be rejected.',
     expires: '2026-04-08',
   },
+  {
+    id: 'greece-supported',
+    message:
+      'Greece (GR) is now supported. Listings can be submitted with country_code "GR" — admin levels are validated against official administrative boundaries (Region → Regional Unit → Municipality). Both Latin transliterations and Greek script names are accepted.',
+    expires: '2026-04-09',
+  },
 ];
 
 export function getActiveNotices(): string[] {
