@@ -19,23 +19,29 @@ export async function enrichLocation(input: ListingInput): Promise<ListingInsert
 
   const provider = getGeocodingProvider();
   let enriched: ListingInput = cleaned;
+  const granularity = cleaned.location_granularity;
 
-  if (provider) {
-    const granularity = cleaned.location_granularity;
-    try {
+  try {
+    // PostGIS enrichment (backfill admin levels from coordinates) — no external provider needed
+    if (granularity === 'coordinates' || granularity === 'address') {
+      enriched = await enrichFromPostGIS(cleaned);
+    }
+
+    // External provider enrichment (Mapbox) — only when configured
+    if (provider) {
       switch (granularity) {
         case 'coordinates':
-          enriched = await enrichFromCoordinates(cleaned, provider);
+          enriched = await enrichFromCoordinatesExternal(enriched, provider);
           break;
         case 'address':
-          enriched = await enrichFromAddress(cleaned, provider);
+          enriched = await enrichFromAddress(enriched, provider);
           break;
         default:
           break;
       }
-    } catch (err) {
-      console.error('Location enrichment failed, proceeding without enrichment:', err);
     }
+  } catch (err) {
+    console.error('Location enrichment failed, proceeding without enrichment:', err);
   }
 
   return computeDisplayCoordinates(enriched);
@@ -93,30 +99,34 @@ export class DisplayCoordinateError extends Error {
   }
 }
 
-async function enrichFromCoordinates(
+/** Backfill admin levels from coordinates using our own PostGIS polygon data */
+async function enrichFromPostGIS(input: ListingInput): Promise<ListingInput> {
+  if (!input.latitude || !input.longitude || !input.country_code) return input;
+
+  try {
+    const postgisResult = await reverseGeocodePostGIS(input.country_code, input.latitude, input.longitude);
+    if (postgisResult) {
+      return {
+        ...input,
+        admin_level_1: input.admin_level_1 ?? postgisResult.admin_level_1 ?? null,
+        admin_level_2: input.admin_level_2 ?? postgisResult.admin_level_2 ?? null,
+        admin_level_3: input.admin_level_3 ?? postgisResult.admin_level_3 ?? null,
+      };
+    }
+  } catch {
+    // PostGIS failed or country has no polygon data — continue without
+  }
+
+  return input;
+}
+
+/** Fill remaining gaps via external geocoding provider (Mapbox) */
+async function enrichFromCoordinatesExternal(
   input: ListingInput,
   provider: { reverseGeocode: (lat: number, lng: number) => Promise<GeocodingResult | null> },
 ): Promise<ListingInput> {
   if (!input.latitude || !input.longitude) return input;
 
-  // For countries with reference polygon data, use PostGIS for canonical admin level names
-  if (input.country_code) {
-    try {
-      const postgisResult = await reverseGeocodePostGIS(input.country_code, input.latitude, input.longitude);
-      if (postgisResult) {
-        return {
-          ...input,
-          admin_level_1: input.admin_level_1 ?? postgisResult.admin_level_1 ?? null,
-          admin_level_2: input.admin_level_2 ?? postgisResult.admin_level_2 ?? null,
-          admin_level_3: input.admin_level_3 ?? postgisResult.admin_level_3 ?? null,
-        };
-      }
-    } catch {
-      // PostGIS failed or country has no polygon data — fall through to Mapbox
-    }
-  }
-
-  // Fallback to external geocoding provider (Mapbox)
   const result = await provider.reverseGeocode(input.latitude, input.longitude);
   if (!result) return input;
 
