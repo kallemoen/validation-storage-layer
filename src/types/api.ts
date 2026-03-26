@@ -6,6 +6,7 @@ export interface ApiResponse<T = unknown> {
     message: string;
     details?: unknown;
   };
+  notices?: string[];
 }
 
 export type AppRole = 'development' | 'collection' | 'admin';
