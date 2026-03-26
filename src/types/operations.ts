@@ -34,7 +34,7 @@ export type RunResultInput = z.infer<typeof RunResultSchema>;
 
 // Scraper status update
 export const ScraperStatusUpdateSchema = z.object({
-  status: z.enum(['active', 'paused', 'broken', 'testing']),
+  status: z.enum(['active', 'paused', 'broken', 'testing', 'degraded']),
 });
 
 export type ScraperStatusUpdateInput = z.infer<typeof ScraperStatusUpdateSchema>;

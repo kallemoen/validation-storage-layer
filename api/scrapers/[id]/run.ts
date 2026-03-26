@@ -28,12 +28,10 @@ export default withAuth(['collection'], async (req, res) => {
     // Store the run receipt
     const receipt = await storeRunReceipt(configId, parsed.data);
 
-    // Update scraper registry
-    const failureAction = parsed.data.status === 'success' ? 'reset' : 'increment';
+    // Update scraper registry (heartbeat + run metadata)
     const result = await updateScraperRunResult(configId, {
       status: parsed.data.status,
       listings_accepted: parsed.data.listings_accepted,
-      failure_count_action: failureAction,
     });
 
     if (!result) {

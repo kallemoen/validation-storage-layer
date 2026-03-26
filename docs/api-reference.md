@@ -291,10 +291,23 @@ Validate and store multiple listings in one request.
     "storage": {
       "inserted": 35,
       "duplicates": ["https://example.com/listing/old"]
+    },
+    "scraper_health": {
+      "acceptance_rate": 0.7,
+      "status_changed_to": "degraded"
     }
   }
 }
 ```
+
+The `scraper_health` field is only included when a status transition occurs (e.g., `active` → `degraded`, `degraded` → `active`, `degraded` → `broken`). It contains:
+
+| Field | Type | Description |
+|---|---|---|
+| `acceptance_rate` | number | Acceptance rate for this batch (0.0 - 1.0) |
+| `status_changed_to` | string | The new status the scraper transitioned to |
+
+See [Validation Rules — Scraper Health Tracking](./validation-rules.md#scraper-health-tracking) for threshold details.
 
 ---
 
@@ -558,7 +571,7 @@ Query the scraper registry.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `status` | string | `active`, `paused`, `broken`, `testing` |
+| `status` | string | `active`, `paused`, `broken`, `testing`, `degraded` |
 | `country_code` | string | ISO 3166-1 alpha-2 code |
 | `listing_type` | string | `sale` or `rent` |
 | `limit` | integer | Results per page (default: 50) |
@@ -585,6 +598,12 @@ Query the scraper registry.
         "failure_count": 0,
         "broken_at": null,
         "repair_count": 0,
+        "acceptance_rate": 0.95,
+        "last_batch_at": "2026-03-25T06:01:30Z",
+        "last_batch_submitted": 47,
+        "last_batch_accepted": 45,
+        "top_rejection_rule": "price_plausible",
+        "degraded_at": null,
         "config": { "currency_code": "EUR", ... }
       }
     ],
@@ -663,9 +682,9 @@ Record the results of a scraper run. Creates a run receipt and updates the scrap
 | `error_message` | string | No | Error details if the run failed |
 
 **Automatic behaviors:**
-- On `success`: resets `failure_count` to 0.
-- On `partial` or `failure`: increments `failure_count`.
-- After 3 consecutive failures: automatically sets scraper status to `broken`.
+- Updates `last_run_at` (heartbeat), `last_run_status`, and `last_run_listings`.
+- This endpoint acts as a check-in — it resets the 24-hour staleness timer. Scrapers that don't check in (via this endpoint or the batch endpoint) for 24 hours are automatically marked `broken` by a daily cron job.
+- This endpoint does **not** drive status transitions. Quality-based health tracking is handled by the batch endpoint.
 
 **Response (200):**
 
@@ -674,8 +693,7 @@ Record the results of a scraper run. Creates a run receipt and updates the scrap
   "success": true,
   "data": {
     "receipt_id": "...",
-    "updated": true,
-    "failure_count": 0
+    "updated": true
   }
 }
 ```
@@ -699,10 +717,10 @@ Update a scraper's status. Use this to reactivate a repaired scraper.
 }
 ```
 
-**Valid values:** `active`, `paused`, `broken`, `testing`
+**Valid values:** `active`, `paused`, `broken`, `testing`, `degraded`
 
 **Automatic behaviors:**
-- When changing from `broken` or `testing` to `active`: increments `repair_count` and resets `failure_count` to 0.
+- When changing from `broken`, `degraded`, or `testing` to `active`: increments `repair_count`, resets `failure_count` to 0, and clears `degraded_at`.
 
 ---
 

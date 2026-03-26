@@ -3,7 +3,7 @@ import { withAuth } from '../../src/middleware/auth.js';
 import { handleError } from '../../src/middleware/error-handler.js';
 import { success, error } from '../../src/lib/response.js';
 import { validateBatch } from '../../src/validation/engine.js';
-import { getScraperById } from '../../src/db/scrapers.js';
+import { getScraperById, updateScraperBatchHealth } from '../../src/db/scrapers.js';
 import { insertListingsBatch } from '../../src/db/listings.js';
 import { storeRejection } from '../../src/db/rejections.js';
 import { COUNTRY_BOUNDS } from '../../src/validation/config/country-bounds.js';
@@ -98,6 +98,9 @@ export default withAuth(['collection'], async (req, res) => {
       }
     }
 
+    // Update scraper health based on validation outcomes
+    const healthResult = await updateScraperBatchHealth(configId, batchResult.summary);
+
     success(res, {
       validation: batchResult,
       storage: {
@@ -105,6 +108,12 @@ export default withAuth(['collection'], async (req, res) => {
         duplicates: insertResult.duplicates,
         ...(enrichmentErrors.length > 0 && { enrichment_errors: enrichmentErrors }),
       },
+      ...(healthResult?.status_changed_to && {
+        scraper_health: {
+          acceptance_rate: healthResult.acceptance_rate,
+          status_changed_to: healthResult.status_changed_to,
+        },
+      }),
     }, 201);
   } catch (err) {
     handleError(res, err);
