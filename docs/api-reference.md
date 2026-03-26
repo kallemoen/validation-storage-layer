@@ -43,7 +43,8 @@ All endpoints return a consistent JSON envelope:
 // Success
 {
   "success": true,
-  "data": { ... }
+  "data": { ... },
+  "notices": ["..."]  // Optional, see Notices below
 }
 
 // Error
@@ -53,9 +54,28 @@ All endpoints return a consistent JSON envelope:
     "code": "ERROR_CODE",
     "message": "Human-readable description",
     "details": { ... }  // Optional, e.g. Zod validation issues
-  }
+  },
+  "notices": ["..."]  // Optional, see Notices below
 }
 ```
+
+### Notices
+
+Any response (success or error) may include a `notices` array with messages about recent API changes, deprecations, or migration guidance. Notices appear for a limited time after a change is made.
+
+**Scraper developers should log or surface these notices** — they indicate something in the API contract has changed that may require updating your scraper.
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "notices": [
+    "display_latitude and display_longitude are now server-computed. Remove these fields from your payload — any values you send will be ignored."
+  ]
+}
+```
+
+Notices are defined in `src/lib/notices.ts` and each has an expiry date. The `notices` field is omitted entirely when there are no active notices.
 
 ---
 
