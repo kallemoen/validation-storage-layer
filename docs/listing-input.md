@@ -21,7 +21,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
 | `admin_level_3` | string (max 255) or null | No | City / municipality. |
 | `admin_level_4` | string (max 255) or null | No | Neighborhood / suburb / ward. |
 
-> **Geography validation:** For countries with geography data loaded (currently PT), admin level values are validated against official reference data. Submitted values must match the reference names exactly, and the parent hierarchy must be consistent (e.g., admin_level_2 must be a child of admin_level_1). Use `GET /api/geography/:country_code` to browse valid values, or `GET /api/geography/:country_code/search?q=...` to fuzzy-search for a region name. Misspellings will be rejected with a "Did you mean?" suggestion.
+> **Geography validation:** For countries with geography data loaded (currently PT and GR), admin level values are validated against official reference data. Submitted values must match the reference names exactly, and the parent hierarchy must be consistent (e.g., admin_level_2 must be a child of admin_level_1). Use `GET /api/geography/:country_code` to browse valid values, or `GET /api/geography/:country_code/search?q=...` to fuzzy-search for a region name. Misspellings will be rejected with a "Did you mean?" suggestion.
 | `postal_code` | string (max 20) or null | No | Local format postal code. |
 | `address_line_1` | string (max 500) or null | No | Primary street address. |
 | `address_line_2` | string (max 500) or null | No | Secondary address line. |

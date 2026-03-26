@@ -22,6 +22,7 @@ export const COUNTRY_BOUNDS: Record<string, CountryBounds> = {
   SE: { minLat: 55.34, maxLat: 69.06, minLng: 11.11, maxLng: 24.17 },
   NO: { minLat: 57.98, maxLat: 71.19, minLng: 4.65, maxLng: 31.17 },
   DK: { minLat: 54.56, maxLat: 57.75, minLng: 8.09, maxLng: 12.69 },
+  GR: { minLat: 34.80, maxLat: 41.75, minLng: 19.37, maxLng: 29.65 },
 };
 
 export function getCountryBounds(countryCode: string): CountryBounds | undefined {

@@ -88,6 +88,10 @@ Price ranges are defined per country, listing type, rent period, and currency. A
 | `BR:rent:monthly:BRL` | 20,000 | 50,000,000 | 200 - 500,000 BRL/month |
 | `AE:sale:AED` | 1,000,000 | 50,000,000,000 | 10,000 - 500,000,000 AED |
 | `AE:rent:monthly:AED` | 50,000 | 100,000,000 | 500 - 1,000,000 AED/month |
+| `GR:sale:EUR` | 50,000 | 5,000,000,000 | 500 - 50,000,000 EUR |
+| `GR:rent:monthly:EUR` | 10,000 | 5,000,000 | 100 - 50,000 EUR/month |
+| `GR:rent:weekly:EUR` | 5,000 | 2,000,000 | 50 - 20,000 EUR/week |
+| `GR:rent:daily:EUR` | 1,000 | 500,000 | 10 - 5,000 EUR/day |
 
 If no range is configured for a country/type/currency combination, the `price_plausible` check is skipped.
 
@@ -112,6 +116,7 @@ Coordinates are validated against approximate bounding boxes. Currently configur
 | SE | 55.34 - 69.06 | 11.11 - 24.17 |
 | NO | 57.98 - 71.19 | 4.65 - 31.17 |
 | DK | 54.56 - 57.75 | 8.09 - 12.69 |
+| GR | 34.80 - 41.75 | 19.37 - 29.65 |
 
 If no bounding box is configured for a country, the coordinates check is skipped.
 

@@ -40,6 +40,12 @@ export const PRICE_RANGES: Record<string, PriceRange> = {
   // UAE
   'AE:sale:AED':           { min: 10_000_00, max: 500_000_000_00 },
   'AE:rent:monthly:AED':   { min: 500_00, max: 1_000_000_00 },
+
+  // Greece
+  'GR:sale:EUR':           { min: 500_00, max: 50_000_000_00 },      // 500 - 50,000,000 EUR
+  'GR:rent:monthly:EUR':   { min: 100_00, max: 50_000_00 },          // 100 - 50,000 EUR/month
+  'GR:rent:weekly:EUR':    { min: 50_00, max: 20_000_00 },            // 50 - 20,000 EUR/week
+  'GR:rent:daily:EUR':     { min: 10_00, max: 5_000_00 },             // 10 - 5,000 EUR/day
 };
 
 export function getPriceRangeKey(

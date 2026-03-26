@@ -70,8 +70,19 @@ class GeographyLookupImpl implements GeographyLookup {
       // That's fine — byNameAndParent is used when parent context is available.
       this.byName.set(nameKey, r);
 
+      // Also index by name_local (e.g., Greek script) if available
+      if (r.name_local) {
+        const localKey = `${r.country_code}:${r.level}:${normalize(r.name_local)}`;
+        this.byName.set(localKey, r);
+      }
+
       const parentKey = `${r.country_code}:${r.level}:${normalize(r.name)}:${r.parent_id ?? 'null'}`;
       this.byNameAndParent.set(parentKey, r);
+
+      if (r.name_local) {
+        const localParentKey = `${r.country_code}:${r.level}:${normalize(r.name_local)}:${r.parent_id ?? 'null'}`;
+        this.byNameAndParent.set(localParentKey, r);
+      }
 
       const levelKey = `${r.country_code}:${r.level}`;
       if (!this.byLevel.has(levelKey)) this.byLevel.set(levelKey, []);
@@ -148,6 +159,14 @@ class GeographyLookupImpl implements GeographyLookup {
       if (dist < bestDist) {
         bestDist = dist;
         bestName = r.name;
+      }
+      // Also check name_local for non-Latin script matching
+      if (r.name_local) {
+        const localDist = levenshtein(normalized, normalize(r.name_local));
+        if (localDist < bestDist) {
+          bestDist = localDist;
+          bestName = r.name_local;
+        }
       }
     }
 

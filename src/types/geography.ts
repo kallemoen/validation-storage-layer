@@ -4,6 +4,7 @@ export interface AdminRegion {
   level: number;
   name: string;
   name_ascii: string;
+  name_local: string | null;
   parent_id: number | null;
   external_id: string | null;
 }
