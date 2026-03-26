@@ -117,6 +117,18 @@ If no bounding box is configured for a country, the coordinates check is skipped
 
 ---
 
+## Enrichment-Phase Checks (Hard Reject)
+
+After validation passes, listings go through location enrichment before storage. The enrichment phase can also reject listings:
+
+| Check | Field(s) | When | Error |
+|---|---|---|---|
+| `OCEAN_COORDINATES` | `latitude`, `longitude` | Coordinate mode (`coordinates`/`address`) for countries with polygon data loaded | Coordinates don't fall within any admin region polygon (even with 10km nearest-neighbor fallback). Likely in the ocean or a body of water. |
+
+These errors appear in the `storage.enrichment_errors` array in the batch response, or as a 400 `OCEAN_COORDINATES` error for single listing submissions.
+
+---
+
 ## Tier 3 — Completeness Validation (Soft Warning)
 
 Does the listing have enough data to be useful? These are **not** grounds for rejection — the listing is still stored — but they flag data quality issues.

@@ -10,7 +10,7 @@ import { COUNTRY_BOUNDS } from '../../src/validation/config/country-bounds.js';
 import { PRICE_RANGES } from '../../src/validation/config/price-ranges.js';
 import { loadGeographyLookup } from '../../src/validation/config/geography-lookup.js';
 import type { ListingInput } from '../../src/types/listing.js';
-import { enrichLocation, DisplayCoordinateError } from '../../src/enrichment/location-enricher.js';
+import { enrichLocation, DisplayCoordinateError, OceanCoordinateError } from '../../src/enrichment/location-enricher.js';
 
 const MAX_BATCH_SIZE = 100;
 
@@ -84,7 +84,7 @@ export default withAuth(['collection'], async (req, res) => {
         .map((r, i) => {
           if (r.status === 'fulfilled') return r.value;
           const lid = acceptedListings[i].listing_id;
-          const msg = r.reason instanceof DisplayCoordinateError
+          const msg = (r.reason instanceof DisplayCoordinateError || r.reason instanceof OceanCoordinateError)
             ? r.reason.message
             : `Enrichment failed: ${r.reason?.message ?? 'unknown error'}`;
           console.error(`Enrichment failed for ${lid}: ${msg}`);
