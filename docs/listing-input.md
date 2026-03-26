@@ -25,11 +25,18 @@ This is the object that scrapers produce and submit to the API. It is the contra
 | `postal_code` | string (max 20) or null | No | Local format postal code. |
 | `address_line_1` | string (max 500) or null | No | Primary street address. |
 | `address_line_2` | string (max 500) or null | No | Secondary address line. |
-| `latitude` | number or null | No | Actual property coordinates. |
-| `longitude` | number or null | No | Actual property coordinates. |
-| `display_latitude` | number | Yes | For map rendering. Always provided by the scraper. |
-| `display_longitude` | number | Yes | For map rendering. Always provided by the scraper. |
+| `latitude` | number or null | No | Actual property coordinates. Only for coordinate mode. |
+| `longitude` | number or null | No | Actual property coordinates. Only for coordinate mode. |
 | `location_granularity` | string | Yes | How precise the location is: `coordinates`, `address`, `postal_code`, `admin_level_4`, `admin_level_3`, `admin_level_2`, `admin_level_1`, `country`. |
+
+> **Location modes are mutually exclusive.** You must choose one:
+>
+> - **Coordinate mode** (`location_granularity: "coordinates"` or `"address"`): Send `latitude`/`longitude`. Do **not** send `admin_level_*` fields — the system backfills them automatically via PostGIS polygon lookup.
+> - **Admin level mode** (`location_granularity: "admin_level_1"` through `"admin_level_4"`): Send `admin_level_*` fields. Do **not** send `latitude`/`longitude` — the system generates display coordinates from the region polygon.
+>
+> Sending both coordinates and admin levels will be rejected with a `location_mode_exclusive` error.
+>
+> `display_latitude`/`display_longitude` are **server-computed** — do not send them. Coordinate mode uses your exact coords; admin level mode generates a random point inside the polygon.
 | **Pricing** | | | |
 | `price_amount` | integer or null | No | Price in **minor units** (e.g., cents). Null means "price on request". |
 | `price_currency_code` | string (3 chars) or null | No | ISO 4217 code. **Must be present when `price_amount` is present, and null when it's null.** |
@@ -52,7 +59,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
 
 ---
 
-## Complete Example — Portuguese Rental
+## Complete Example — Coordinate Mode (Portuguese Rental)
 
 ```json
 {
@@ -62,17 +69,11 @@ This is the object that scrapers produce and submit to the API. It is the contra
   "listing_type": "rent",
   "rent_period": "monthly",
   "country_code": "PT",
-  "admin_level_1": "Lisboa",
-  "admin_level_2": "Lisboa",
-  "admin_level_3": "Lisboa",
-  "admin_level_4": "Santo António",
   "postal_code": "1150-123",
   "address_line_1": "Rua da Alegria 45",
   "address_line_2": "3o Andar",
   "latitude": 38.7174,
   "longitude": -9.1453,
-  "display_latitude": 38.7191,
-  "display_longitude": -9.1438,
   "location_granularity": "coordinates",
   "price_amount": 170000,
   "price_currency_code": "EUR",
@@ -106,7 +107,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
 
 ---
 
-## Minimal Valid Example — Sale
+## Minimal Valid Example — Admin Level Mode (Sale)
 
 The minimum fields required to pass Tier 1 and Tier 2 validation:
 
@@ -117,15 +118,16 @@ The minimum fields required to pass Tier 1 and Tier 2 validation:
   "config_id": "a9b8c7d6-e5f4-4a3b-8c2d-1e0f9a8b7c6d",
   "listing_type": "sale",
   "country_code": "PT",
-  "display_latitude": 38.72,
-  "display_longitude": -9.14,
-  "location_granularity": "country",
+  "admin_level_1": "Lisboa",
+  "admin_level_2": "Lisboa",
+  "admin_level_3": "Santa Maria Maior",
+  "location_granularity": "admin_level_3",
   "property_type": "other",
   "raw_data": { "original": "raw scrape data here" }
 }
 ```
 
-This will pass Tier 1 and Tier 2 but will receive Tier 3 warnings for missing images, description, and low completeness. It will still be stored with status `accepted_with_warnings`.
+This will pass Tier 1 and Tier 2 but will receive Tier 3 warnings for missing images, description, and low completeness. It will still be stored with status `accepted_with_warnings`. Display coordinates will be auto-generated as a random point inside the Santa Maria Maior polygon.
 
 ---
 

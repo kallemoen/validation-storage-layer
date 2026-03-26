@@ -28,7 +28,7 @@ Does the listing conform to the data model? These check structural correctness.
 
 | Rule | Field(s) | Check | Example error |
 |---|---|---|---|
-| `required_field` | `listing_id`, `source_url`, `config_id`, `listing_type`, `country_code`, `property_type`, `display_latitude`, `display_longitude`, `location_granularity`, `raw_data` | Field must be non-null | `{"field": "listing_id", "rule": "required_field", "value": null}` |
+| `required_field` | `listing_id`, `source_url`, `config_id`, `listing_type`, `country_code`, `property_type`, `location_granularity`, `raw_data` | Field must be non-null | `{"field": "listing_id", "rule": "required_field", "value": null}` |
 | `valid_uuid` | `listing_id`, `config_id` | Must be a valid UUID format | `{"field": "config_id", "rule": "valid_uuid", "value": "not-a-uuid", "expected": "UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"}` |
 | `valid_iso_country` | `country_code` | Must be a valid ISO 3166-1 alpha-2 code | `{"field": "country_code", "rule": "valid_iso_country", "value": "XX"}` |
 | `valid_enum` | `listing_type`, `rent_period`, `listing_status`, `property_type`, `location_granularity` | Must be one of the allowed values (skips null/undefined) | `{"field": "listing_type", "rule": "valid_enum", "value": "lease", "expected": "One of: sale, rent"}` |
@@ -41,7 +41,7 @@ Does the listing conform to the data model? These check structural correctness.
 | Field | Expected type |
 |---|---|
 | `listing_id`, `source_url`, `config_id`, `listing_type`, `rent_period`, `country_code`, `admin_level_1`-`4`, `postal_code`, `address_line_1`-`2`, `location_granularity`, `price_currency_code`, `price_scraped_at`, `raw_room_description`, `property_type`, `property_subtype`, `raw_property_type`, `description` | string |
-| `latitude`, `longitude`, `display_latitude`, `display_longitude`, `bathrooms`, `living_area_sqm`, `plot_area_sqm` | number |
+| `latitude`, `longitude`, `bathrooms`, `living_area_sqm`, `plot_area_sqm` | number |
 | `price_amount`, `bedrooms`, `total_rooms` | integer |
 | `images` | array |
 | `raw_data` | object |
@@ -60,8 +60,8 @@ Does the data make sense? These catch extraction and normalization errors that p
 | `room_range` | `bedrooms` | If present, must be 0-50 | `{"field": "bedrooms", "rule": "room_range", "value": 100, "expected": "0-50"}` |
 | `room_range` | `bathrooms` | If present, must be 0-50 | `{"field": "bathrooms", "rule": "room_range", "value": 75, "expected": "0-50"}` |
 | `area_range` | `living_area_sqm` | If present, must be 5-50,000 sqm | `{"field": "living_area_sqm", "rule": "area_range", "value": 100000, "expected": "5-50000 sqm"}` |
+| `location_mode_exclusive` | `location_granularity`, `latitude`, `longitude`, `admin_level_*` | Coordinate mode (`coordinates`/`address`) must not include admin_level fields. Admin-level mode must not include lat/lng. | `{"field": "location_granularity", "rule": "location_mode_exclusive", "value": "coordinates", "detail": "location_granularity \"coordinates\" uses coordinate mode. Do not send admin_level_* fields..."}` |
 | `coordinates_in_country` | `latitude`, `longitude` | If present, must fall within the bounding box of `country_code` | `{"field": "latitude", "rule": "coordinates_in_country", "value": 60.0, "expected": "36.96-42.15 for PT"}` |
-| `display_coordinates_in_country` | `display_latitude`, `display_longitude` | Must fall within the bounding box of `country_code` | Same format as above |
 | `price_currency_pair` | `price_amount`, `price_currency_code` | Both must be present or both must be null | `{"field": "price_currency_code", "rule": "price_currency_pair", "value": null, "detail": "price_amount and price_currency_code must both be present or both be null"}` |
 | `country_supported` | `country_code` | Country must have geography data loaded. Skipped if geography lookup is not initialized. | `{"field": "country_code", "rule": "country_supported", "value": "DE", "expected": "Supported countries: PT", "detail": "Country DE is not yet supported. Listings can only be submitted for countries with geography data loaded."}` |
 | `admin_levels_valid` | `admin_level_1` through `admin_level_N` | Each admin level value must match the reference data for the country. Validates parent hierarchy (e.g., admin_level_2 must be a child of the provided admin_level_1). Skipped if country has no geography data. | `{"field": "admin_level_2", "rule": "admin_levels_valid", "value": "Lisbona", "expected": "Valid Concelho for PT in Distrito \"Lisboa\"", "detail": "\"Lisbona\" not found. Did you mean \"Lisboa\"?"}` |
