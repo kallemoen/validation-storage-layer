@@ -3,7 +3,7 @@ import type { ListingInsertRow } from '../types/listing.js';
 import type { GeocodingResult } from './geocoding.js';
 import { getGeocodingProvider } from './geocoding.js';
 import { reverseGeocodePostGIS } from './postgis-geocoder.js';
-import { getRandomPointInRegion } from '../db/admin-regions.js';
+import { getRandomPointInRegion, getAdminLevelConfig } from '../db/admin-regions.js';
 
 /**
  * Enriches location data on a listing based on what's already provided.
@@ -41,6 +41,7 @@ export async function enrichLocation(input: ListingInput): Promise<ListingInsert
       }
     }
   } catch (err) {
+    if (err instanceof OceanCoordinateError) throw err;
     console.error('Location enrichment failed, proceeding without enrichment:', err);
   }
 
@@ -86,6 +87,20 @@ async function computeDisplayCoordinates(input: ListingInput): Promise<ListingIn
   throw new DisplayCoordinateError(input.listing_id, granularity);
 }
 
+export class OceanCoordinateError extends Error {
+  constructor(
+    public readonly listingId: string,
+    public readonly lat: number,
+    public readonly lng: number,
+  ) {
+    super(
+      `Coordinates (${lat}, ${lng}) for listing ${listingId} appear to be in the ocean — ` +
+      'no admin region found within 10km. Verify your latitude and longitude are correct.',
+    );
+    this.name = 'OceanCoordinateError';
+  }
+}
+
 export class DisplayCoordinateError extends Error {
   constructor(
     public readonly listingId: string,
@@ -103,18 +118,21 @@ export class DisplayCoordinateError extends Error {
 async function enrichFromPostGIS(input: ListingInput): Promise<ListingInput> {
   if (!input.latitude || !input.longitude || !input.country_code) return input;
 
-  try {
-    const postgisResult = await reverseGeocodePostGIS(input.country_code, input.latitude, input.longitude);
-    if (postgisResult) {
-      return {
-        ...input,
-        admin_level_1: input.admin_level_1 ?? postgisResult.admin_level_1 ?? null,
-        admin_level_2: input.admin_level_2 ?? postgisResult.admin_level_2 ?? null,
-        admin_level_3: input.admin_level_3 ?? postgisResult.admin_level_3 ?? null,
-      };
-    }
-  } catch {
-    // PostGIS failed or country has no polygon data — continue without
+  const postgisResult = await reverseGeocodePostGIS(input.country_code, input.latitude, input.longitude);
+  if (postgisResult) {
+    return {
+      ...input,
+      admin_level_1: input.admin_level_1 ?? postgisResult.admin_level_1 ?? null,
+      admin_level_2: input.admin_level_2 ?? postgisResult.admin_level_2 ?? null,
+      admin_level_3: input.admin_level_3 ?? postgisResult.admin_level_3 ?? null,
+    };
+  }
+
+  // PostGIS returned null — check if this country has polygon data
+  // If it does and no region matched, the coordinates are likely in the ocean
+  const config = await getAdminLevelConfig(input.country_code);
+  if (config) {
+    throw new OceanCoordinateError(input.listing_id, input.latitude, input.longitude);
   }
 
   return input;

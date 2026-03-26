@@ -141,5 +141,6 @@ This will pass Tier 1 and Tier 2 but will receive Tier 3 warnings for missing im
 | Price in major units instead of minor units (e.g., `1700` instead of `170000` for 1700 EUR) | `price_plausible` — the value will appear too low |
 | Using a currency that doesn't match the scraper config | `currency_matches_config` |
 | Coordinates outside the country | `coordinates_in_country` — check your lat/lng aren't swapped |
+| Coordinates in the ocean / not on land | `OCEAN_COORDINATES` — no admin region found within 10km of your coordinates |
 | Submitting a `source_url` that already exists in the database | `DUPLICATE` (409 response) — not a validation error, a storage error |
 | Using an invalid country code | `valid_iso_country` — must be ISO 3166-1 alpha-2 |
