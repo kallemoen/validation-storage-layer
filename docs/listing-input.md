@@ -53,6 +53,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
 | `property_subtype` | string (max 100) or null | No | Market-specific subtype (e.g., `single_family`, `condo`, `riad`). |
 | `raw_property_type` | string (max 500) or null | No | Exact source text. |
 | **Content** | | | |
+| `title` | string (max 500) | Yes | Listing title or headline. Must be non-empty. |
 | `description` | string or null | No | Raw description. Any language, any length. |
 | `images` | string[] or null | No | Ordered array of valid image URLs. First is the hero image. |
 | `raw_data` | object | Yes | Complete raw extraction output. Any structure. Write-once. |
@@ -87,6 +88,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
   "property_type": "apartment",
   "property_subtype": null,
   "raw_property_type": "Apartamento T2",
+  "title": "Apartamento T2 no Centro de Lisboa",
   "description": "Apartamento T2, no Centro de Lisboa, totalmente renovado. Cozinha equipada, varanda com vista para a cidade.",
   "images": [
     "https://remax.pt/img/listing-12345/1.jpg",
@@ -123,6 +125,7 @@ The minimum fields required to pass Tier 1 and Tier 2 validation:
   "admin_level_3": "Santa Maria Maior",
   "location_granularity": "admin_level_3",
   "property_type": "other",
+  "title": "Moradia em Santa Maria Maior",
   "raw_data": { "original": "raw scrape data here" }
 }
 ```
@@ -143,4 +146,5 @@ This will pass Tier 1 and Tier 2 but will receive Tier 3 warnings for missing im
 | Coordinates outside the country | `coordinates_in_country` — check your lat/lng aren't swapped |
 | Coordinates in the ocean / not on land | `OCEAN_COORDINATES` — no admin region found within 10km of your coordinates |
 | Submitting a `source_url` that already exists in the database | `DUPLICATE` (409 response) — not a validation error, a storage error |
+| Omitting `title` or sending an empty string | `required_field` — title is required and must be non-empty |
 | Using an invalid country code | `valid_iso_country` — must be ISO 3166-1 alpha-2 |

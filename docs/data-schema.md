@@ -106,6 +106,7 @@ The core table. One row per unique property listing.
 
 | Field | Type | Nullable | Description |
 |---|---|---|---|
+| `title` | VARCHAR(500) | No | Listing title or headline. |
 | `description` | TEXT | Yes | Raw description text. Any language, any length. |
 | `images` | JSONB | Yes | Ordered array of image URLs. First entry is the hero image. |
 | `raw_data` | JSONB | No | Complete raw extraction output. Write-once. Structure varies per source. |
