@@ -30,6 +30,7 @@ const FIELD_TYPES: Record<string, 'string' | 'number' | 'integer' | 'object' | '
   property_type: 'string',
   property_subtype: 'string',
   raw_property_type: 'string',
+  title: 'string',
   description: 'string',
   images: 'array',
   raw_data: 'object',

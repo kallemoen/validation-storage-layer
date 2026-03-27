@@ -8,6 +8,7 @@ const REQUIRED_FIELDS = [
   'country_code',
   'property_type',
   'location_granularity',
+  'title',
   'raw_data',
 ];
 

@@ -46,6 +46,12 @@ const ALL_NOTICES: Notice[] = [
       'The batch endpoint now tracks scraper health based on validation outcomes. Scrapers with acceptance rate below 70% are marked "degraded", below 30% "broken". Scrapers that don\'t check in for 24 hours are auto-marked "broken". Auto-recovery occurs when a healthy batch (>= 70% acceptance) is submitted. Query the scraper registry for acceptance_rate and top_rejection_rule fields.',
     expires: '2026-04-09',
   },
+  {
+    id: 'title-required',
+    message:
+      'The "title" field is now required. Listings submitted without a non-empty title (string, max 500 chars) will be rejected at Tier 1 validation. Update your scraper to extract and include the listing title.',
+    expires: '2026-04-10',
+  },
 ];
 
 export function getActiveNotices(): string[] {

@@ -33,6 +33,7 @@ export function makeValidListing(overrides: Record<string, unknown> = {}): Recor
     property_type: 'apartment',
     property_subtype: null,
     raw_property_type: 'Apartamento T2',
+    title: 'Apartamento T2 no Centro de Lisboa',
     description: 'Apartamento T2, no Centro de Lisboa, totalmente renovado.',
     images: ['https://remax.pt/img/1.jpg', 'https://remax.pt/img/2.jpg'],
     raw_data: { price: '1 700 €/ Mensal', type: 'Apartamento T2' },

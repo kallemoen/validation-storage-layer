@@ -28,7 +28,7 @@ Does the listing conform to the data model? These check structural correctness.
 
 | Rule | Field(s) | Check | Example error |
 |---|---|---|---|
-| `required_field` | `listing_id`, `source_url`, `config_id`, `listing_type`, `country_code`, `property_type`, `location_granularity`, `raw_data` | Field must be non-null | `{"field": "listing_id", "rule": "required_field", "value": null}` |
+| `required_field` | `listing_id`, `source_url`, `config_id`, `listing_type`, `country_code`, `property_type`, `location_granularity`, `title`, `raw_data` | Field must be non-null | `{"field": "listing_id", "rule": "required_field", "value": null}` |
 | `valid_uuid` | `listing_id`, `config_id` | Must be a valid UUID format | `{"field": "config_id", "rule": "valid_uuid", "value": "not-a-uuid", "expected": "UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"}` |
 | `valid_iso_country` | `country_code` | Must be a valid ISO 3166-1 alpha-2 code | `{"field": "country_code", "rule": "valid_iso_country", "value": "XX"}` |
 | `valid_enum` | `listing_type`, `rent_period`, `listing_status`, `property_type`, `location_granularity` | Must be one of the allowed values (skips null/undefined) | `{"field": "listing_type", "rule": "valid_enum", "value": "lease", "expected": "One of: sale, rent"}` |
@@ -40,7 +40,7 @@ Does the listing conform to the data model? These check structural correctness.
 
 | Field | Expected type |
 |---|---|
-| `listing_id`, `source_url`, `config_id`, `listing_type`, `rent_period`, `country_code`, `admin_level_1`-`4`, `postal_code`, `address_line_1`-`2`, `location_granularity`, `price_currency_code`, `price_scraped_at`, `raw_room_description`, `property_type`, `property_subtype`, `raw_property_type`, `description` | string |
+| `listing_id`, `source_url`, `config_id`, `listing_type`, `rent_period`, `country_code`, `admin_level_1`-`4`, `postal_code`, `address_line_1`-`2`, `location_granularity`, `price_currency_code`, `price_scraped_at`, `raw_room_description`, `property_type`, `property_subtype`, `raw_property_type`, `title`, `description` | string |
 | `latitude`, `longitude`, `bathrooms`, `living_area_sqm`, `plot_area_sqm` | number |
 | `price_amount`, `bedrooms`, `total_rooms` | integer |
 | `images` | array |

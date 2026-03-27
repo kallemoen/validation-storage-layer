@@ -35,6 +35,13 @@ describe('validateListing', () => {
     expect(result.tier_2_errors).toEqual([]);
   });
 
+  it('rejects on missing title', () => {
+    const listing = makeValidListing({ title: null });
+    const result = validateListing(listing, ctx, 'test');
+    expect(result.status).toBe('rejected');
+    expect(result.tier_1_errors.some(e => e.rule === 'required_field' && e.field === 'title')).toBe(true);
+  });
+
   it('rejects on tier 2 failure (negative price)', () => {
     const listing = makeValidListing({ price_amount: -100 });
     const result = validateListing(listing, ctx, 'test');
