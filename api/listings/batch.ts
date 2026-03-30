@@ -99,7 +99,7 @@ export default withAuth(['collection'], async (req, res) => {
     }
 
     // Update scraper health based on validation outcomes
-    const healthResult = await updateScraperBatchHealth(configId, batchResult.summary);
+    const healthResult = await updateScraperBatchHealth(configId, batchResult.summary, insertResult.inserted);
 
     success(res, {
       validation: batchResult,
@@ -108,12 +108,12 @@ export default withAuth(['collection'], async (req, res) => {
         duplicates: insertResult.duplicates,
         ...(enrichmentErrors.length > 0 && { enrichment_errors: enrichmentErrors }),
       },
-      ...(healthResult?.status_changed_to && {
-        scraper_health: {
-          acceptance_rate: healthResult.acceptance_rate,
-          status_changed_to: healthResult.status_changed_to,
-        },
-      }),
+      scraper_health: {
+        acceptance_rate: healthResult?.acceptance_rate ?? null,
+        status: healthResult?.status ?? scraper.status,
+        status_reason: healthResult?.status_reason ?? null,
+        status_changed: healthResult?.status_changed ?? false,
+      },
     }, 201);
   } catch (err) {
     handleError(res, err);

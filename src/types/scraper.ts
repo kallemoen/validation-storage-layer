@@ -12,6 +12,8 @@ export const ScraperRegistryInputSchema = z.object({
   area_key: z.string().max(255),
   listing_type: z.enum(['sale', 'rent']),
   config: z.record(z.unknown()),
+  expected_discovery_count: z.number().int().positive(),
+  run_interval_hours: z.number().int().positive(),
 });
 
 export type ScraperRegistryInput = z.infer<typeof ScraperRegistryInputSchema>;
@@ -37,4 +39,8 @@ export interface ScraperRow {
   last_batch_accepted: number | null;
   top_rejection_rule: string | null;
   degraded_at: string | null;
+  expected_discovery_count: number;
+  run_interval_hours: number;
+  last_successful_insert_at: string | null;
+  status_reason: string | null;
 }

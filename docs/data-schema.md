@@ -141,7 +141,7 @@ One row per scraper configuration. Tracks scraper health and operational state.
 | `country_code` | CHAR(2) | No | — | Market this scraper covers. |
 | `area_key` | VARCHAR(255) | No | — | Area within the market (e.g., `Lisboa`). |
 | `listing_type` | VARCHAR(20) | No | — | `sale` or `rent`. |
-| `status` | VARCHAR(20) | No | `testing` | `active`, `paused`, `broken`, or `testing`. |
+| `status` | VARCHAR(20) | No | `testing` | `active`, `paused`, `broken`, `degraded`, or `testing`. |
 | `created_at` | TIMESTAMPTZ | No | `now()` | When first registered. |
 | `last_run_at` | TIMESTAMPTZ | Yes | — | Last time the scraper was run. |
 | `last_run_status` | VARCHAR(20) | Yes | — | `success`, `partial`, or `failure`. |
@@ -149,6 +149,10 @@ One row per scraper configuration. Tracks scraper health and operational state.
 | `failure_count` | SMALLINT | No | `0` | Consecutive failed runs. Resets on success. |
 | `broken_at` | TIMESTAMPTZ | Yes | — | When the scraper was marked as broken. |
 | `repair_count` | SMALLINT | No | `0` | How many times the scraper has been repaired. |
+| `expected_discovery_count` | INTEGER | No | `0` | Exact number of listings discovery should return. Used for health check 1b (discovery mismatch). |
+| `run_interval_hours` | INTEGER | No | `24` | How often the scraper runs, in hours. Used for health check 6 (scraper gone silent). |
+| `last_successful_insert_at` | TIMESTAMPTZ | Yes | — | When a listing was last successfully inserted. Used for health check 5 (no new listings). |
+| `status_reason` | VARCHAR(255) | Yes | — | Human-readable reason for the current status (e.g., `"Discovery mismatch: 85 found, expected 100"`). Set to `"Manually set to {status}"` on manual status change. |
 | `config` | JSONB | No | — | Full scraper configuration. Structure varies per scraper. Must include `currency_code`. |
 
 **Automatic behaviors:**
@@ -245,7 +249,7 @@ Describes how precise the location data is. Ordered from most to least granular:
 | `country` | Only country known | Random point within country |
 
 ### scraper status
-`active`, `paused`, `broken`, `testing`
+`active`, `paused`, `broken`, `degraded`, `testing`
 
 ### run status
 `success`, `partial`, `failure`

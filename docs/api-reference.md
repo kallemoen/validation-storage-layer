@@ -293,21 +293,23 @@ Validate and store multiple listings in one request.
       "duplicates": ["https://example.com/listing/old"]
     },
     "scraper_health": {
-      "acceptance_rate": 0.7,
-      "status_changed_to": "degraded"
+      "acceptance_rate": 0.85,
+      "status": "active",
+      "status_reason": null,
+      "status_changed": false
     }
   }
 }
 ```
 
-The `scraper_health` field is only included when a status transition occurs (e.g., `active` → `degraded`, `degraded` → `active`, `degraded` → `broken`). It contains:
+The `scraper_health` field is **always** included in the batch response. It evaluates checks 3 and 4 (validation degradation / validation failure). See [Validation Rules — Scraper Health](./validation-rules.md#scraper-health) for all failure modes.
 
 | Field | Type | Description |
 |---|---|---|
 | `acceptance_rate` | number | Acceptance rate for this batch (0.0 - 1.0) |
-| `status_changed_to` | string | The new status the scraper transitioned to |
-
-See [Validation Rules — Scraper Health Tracking](./validation-rules.md#scraper-health-tracking) for threshold details.
+| `status` | string | Current scraper status after evaluation |
+| `status_reason` | string or null | Human-readable reason if status is `degraded` or `broken` |
+| `status_changed` | boolean | Whether the status changed as a result of this batch |
 
 ---
 
@@ -630,6 +632,8 @@ Register a new scraper in the system. The scraper is created with `status: "test
   "country_code": "PT",
   "area_key": "Lisboa",
   "listing_type": "rent",
+  "expected_discovery_count": 100,
+  "run_interval_hours": 12,
   "config": {
     "currency_code": "EUR",
     "base_url": "https://remax.pt",
@@ -637,6 +641,16 @@ Register a new scraper in the system. The scraper is created with `status: "test
   }
 }
 ```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `agency_name` | string | Yes | Human-readable agency name |
+| `country_code` | string | Yes | ISO 3166-1 alpha-2 code |
+| `area_key` | string | Yes | Area within the market |
+| `listing_type` | string | Yes | `sale` or `rent` |
+| `expected_discovery_count` | integer | Yes | Exact number of listings discovery should return. Used for health check 1b. |
+| `run_interval_hours` | integer | Yes | How often the scraper runs, in hours. Used for staleness detection (check 6). |
+| `config` | object | Yes | Scraper configuration. Must include `currency_code`. |
 
 **Response (201):** The full scraper registry row including the generated `config_id`.
 
@@ -683,8 +697,7 @@ Record the results of a scraper run. Creates a run receipt and updates the scrap
 
 **Automatic behaviors:**
 - Updates `last_run_at` (heartbeat), `last_run_status`, and `last_run_listings`.
-- This endpoint acts as a check-in — it resets the 24-hour staleness timer. Scrapers that don't check in (via this endpoint or the batch endpoint) for 24 hours are automatically marked `broken` by a daily cron job.
-- This endpoint does **not** drive status transitions. Quality-based health tracking is handled by the batch endpoint.
+- Evaluates pipeline health checks 1a, 1b, and 2 (discovery failure, discovery mismatch, pipeline leakage). See [Validation Rules — Scraper Health](./validation-rules.md#scraper-health).
 
 **Response (200):**
 
@@ -693,10 +706,23 @@ Record the results of a scraper run. Creates a run receipt and updates the scrap
   "success": true,
   "data": {
     "receipt_id": "...",
-    "updated": true
+    "updated": true,
+    "scraper_health": {
+      "status": "degraded",
+      "status_reason": "Discovery mismatch: 85 found, expected 100",
+      "status_changed": true
+    }
   }
 }
 ```
+
+The `scraper_health` field is always included. It contains:
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | Current scraper status after evaluation |
+| `status_reason` | string or null | Human-readable reason if status is `degraded` or `broken` |
+| `status_changed` | boolean | Whether the status changed as a result of this run |
 
 ---
 
@@ -721,6 +747,7 @@ Update a scraper's status. Use this to reactivate a repaired scraper.
 
 **Automatic behaviors:**
 - When changing from `broken`, `degraded`, or `testing` to `active`: increments `repair_count`, resets `failure_count` to 0, and clears `degraded_at`.
+- Sets `status_reason` to `"Manually set to {status}"`.
 
 ---
 

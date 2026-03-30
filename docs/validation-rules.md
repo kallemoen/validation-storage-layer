@@ -183,29 +183,28 @@ Each error/warning object:
 
 ---
 
-## Scraper Health Tracking
+## Scraper Health
 
-The batch endpoint (`POST /api/listings/batch`) automatically tracks scraper health based on validation outcomes. Health metrics are written to the `scraper_registry` after every batch.
+The system evaluates scraper health through 6 failure mode checks across the full pipeline. Checks run at different points: the `/batch` endpoint, the `/run` endpoint, and an hourly cron job.
 
-### Quality thresholds
+`testing` and `paused` scrapers are excluded from all health checks.
 
-| Acceptance Rate | Transition | Rationale |
-|---|---|---|
-| >= 70% | Stay `active`, or `degraded` → `active` (auto-recover) | Healthy batch |
-| < 70% and >= 30% | `active` → `degraded` | Significant quality drop, still producing some data |
-| < 30% | `active`/`degraded` → `broken` | Extracting garbage |
+### Failure modes
 
-**Minimum batch size guard:** Batches with fewer than 3 listings skip state transitions (not statistically meaningful). Health columns are still updated.
-
-### Staleness detection
-
-Every active or degraded scraper must check in at least once per day — either via the batch endpoint (submitting listings) or the run endpoint (reporting a run result). A daily cron job (03:30 UTC) marks stale scrapers as `broken`.
-
-`testing` and `paused` scrapers are excluded from both quality and staleness checks.
+| # | Check | Evaluated at | Signal | Result | What it means |
+|---|---|---|---|---|---|
+| 1a | Discovery total failure | `/run` | `urls_discovered == 0` | `broken` | Discovery returned nothing. Site may have changed structure or blocked the scraper. |
+| 1b | Discovery mismatch | `/run` | `urls_discovered != expected_discovery_count` | `degraded` | Discovery found a different number of listings than expected. Pagination or filtering may be broken. |
+| 2 | Pipeline leakage | `/run` | `listings_submitted < urls_new` | `degraded` | Some new URLs were not submitted for validation. Extraction likely failing on some pages. |
+| 3 | Validation degradation | `/batch` | `rejected > 1` AND rejection rate `> 10%` | `degraded` | A meaningful portion of listings are failing validation. Data quality is slipping. |
+| 4 | Validation failure | `/batch` | `submitted > 1` AND `100%` rejected | `broken` | Every listing in the batch was rejected. The scraper is extracting garbage. |
+| 5 | No new listings | Hourly cron | 3+ days since last successful insert | `degraded` | The scraper is running but not producing any new stored listings. |
+| 6 | Scraper gone silent | Hourly cron | No activity in `2 * run_interval_hours` | `broken` | The scraper has stopped running entirely. |
 
 ### Recovery
 
-When a `degraded` scraper submits a healthy batch (>= 70% acceptance rate), it automatically recovers to `active`. `broken` scrapers require a manual status change via `PATCH /api/scrapers/{id}/status`.
+- **`degraded` to `active`:** Automatic. When all checks pass on the next run, the scraper recovers to `active`.
+- **`broken` never auto-recovers.** A manual status change via `PATCH /api/scrapers/{id}/status` is required.
 
 ### Health columns in scraper registry
 
@@ -217,6 +216,8 @@ When a `degraded` scraper submits a healthy batch (>= 70% acceptance rate), it a
 | `last_batch_accepted` | integer | Number of listings accepted in the last batch |
 | `top_rejection_rule` | varchar(100) | Most common rejection rule in the last batch |
 | `degraded_at` | timestamptz | When the scraper entered `degraded` status |
+| `last_successful_insert_at` | timestamptz | When a listing was last successfully inserted (for check 5) |
+| `status_reason` | varchar(255) | Human-readable reason for the current status |
 
 ---
 

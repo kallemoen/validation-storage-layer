@@ -1,6 +1,7 @@
 import { getSupabaseClient } from './client.js';
-import type { ScraperRegistryInput } from '../types/scraper.js';
+import type { ScraperRegistryInput, ScraperRow } from '../types/scraper.js';
 import type { BatchSummary } from '../types/validation.js';
+import { evaluateBatchHealth, evaluateRunHealth } from '../health/evaluate.js';
 
 export async function registerScraper(input: ScraperRegistryInput) {
   const client = getSupabaseClient();
@@ -12,6 +13,8 @@ export async function registerScraper(input: ScraperRegistryInput) {
       area_key: input.area_key,
       listing_type: input.listing_type,
       config: input.config,
+      expected_discovery_count: input.expected_discovery_count,
+      run_interval_hours: input.run_interval_hours,
       status: 'testing',
     })
     .select()
@@ -89,7 +92,10 @@ export async function updateScraperStatus(configId: string, newStatus: string) {
   const existing = await getScraperById(configId);
   if (!existing) return null;
 
-  const updates: Record<string, unknown> = { status: newStatus };
+  const updates: Record<string, unknown> = {
+    status: newStatus,
+    status_reason: `Manually set to ${newStatus}`,
+  };
 
   // Track repairs: if moving from broken/degraded/testing to active, increment repair_count
   if (newStatus === 'active' && (existing.status === 'broken' || existing.status === 'degraded' || existing.status === 'testing')) {
@@ -107,22 +113,14 @@ export async function updateScraperStatus(configId: string, newStatus: string) {
   return { updated: true };
 }
 
-const MIN_BATCH_SIZE = 3;
-const DEGRADE_THRESHOLD = 0.7;
-const BREAK_THRESHOLD = 0.3;
-
 export async function updateScraperBatchHealth(
   configId: string,
   summary: BatchSummary,
+  insertedCount: number,
 ) {
   const client = getSupabaseClient();
-  const existing = await getScraperById(configId);
+  const existing = await getScraperById(configId) as ScraperRow | null;
   if (!existing) return null;
-
-  // Skip health updates for paused/testing scrapers
-  if (existing.status === 'paused' || existing.status === 'testing') {
-    return { updated: false, acceptance_rate: null, status_changed_to: null };
-  }
 
   const totalAccepted = summary.accepted + summary.accepted_with_warnings;
   const rate = summary.total_submitted > 0
@@ -130,6 +128,9 @@ export async function updateScraperBatchHealth(
     : 0;
   const topRule = summary.top_rejection_reasons[0]?.rule ?? null;
   const now = new Date().toISOString();
+
+  // Evaluate health using pure function
+  const result = evaluateBatchHealth({ scraper: existing, summary, insertedCount });
 
   const updates: Record<string, unknown> = {
     acceptance_rate: Math.round(rate * 1000) / 1000,
@@ -139,33 +140,25 @@ export async function updateScraperBatchHealth(
     top_rejection_rule: topRule,
   };
 
-  let statusChangedTo: string | null = null;
+  if (result.updateInsertTimestamp) {
+    updates.last_successful_insert_at = now;
+  }
 
-  // Only trigger state changes for meaningful batch sizes
-  if (summary.total_submitted >= MIN_BATCH_SIZE) {
-    if (rate >= DEGRADE_THRESHOLD) {
-      // Healthy — recover if degraded
-      if (existing.status === 'degraded') {
-        updates.status = 'active';
-        updates.degraded_at = null;
-        statusChangedTo = 'active';
-      }
-    } else if (rate >= BREAK_THRESHOLD) {
-      // Degraded
-      if (existing.status === 'active') {
-        updates.status = 'degraded';
-        updates.degraded_at = now;
-        statusChangedTo = 'degraded';
-      }
-    } else {
-      // Broken — acceptance rate below 0.3
-      if (existing.status === 'active' || existing.status === 'degraded') {
-        updates.status = 'broken';
-        updates.broken_at = now;
-        updates.degraded_at = existing.degraded_at ?? now;
-        statusChangedTo = 'broken';
-      }
+  if (result.newStatus) {
+    updates.status = result.newStatus;
+    updates.status_reason = result.reason;
+
+    if (result.newStatus === 'broken') {
+      updates.broken_at = now;
+      updates.degraded_at = existing.degraded_at ?? now;
+    } else if (result.newStatus === 'degraded') {
+      updates.degraded_at = now;
+    } else if (result.newStatus === 'active') {
+      updates.degraded_at = null;
     }
+  } else if (result.reason) {
+    // Status didn't change but we have a reason (e.g. already broken)
+    updates.status_reason = result.reason;
   }
 
   const { error } = await client
@@ -178,6 +171,68 @@ export async function updateScraperBatchHealth(
   return {
     updated: true,
     acceptance_rate: Math.round(rate * 1000) / 1000,
-    status_changed_to: statusChangedTo,
+    status: result.newStatus ?? existing.status,
+    status_reason: result.reason,
+    status_changed: result.newStatus !== null,
+  };
+}
+
+export async function updateScraperRunHealth(
+  configId: string,
+  runData: {
+    urls_discovered: number;
+    urls_new: number;
+    listings_submitted: number;
+  },
+) {
+  const client = getSupabaseClient();
+  const existing = await getScraperById(configId) as ScraperRow | null;
+  if (!existing) return null;
+
+  // Evaluate health using pure function
+  const result = evaluateRunHealth({
+    scraper: existing,
+    urlsDiscovered: runData.urls_discovered,
+    urlsNew: runData.urls_new,
+    listingsSubmitted: runData.listings_submitted,
+  });
+
+  if (!result.newStatus && !result.reason) {
+    return { updated: false, status: existing.status, status_reason: existing.status_reason, status_changed: false };
+  }
+
+  const now = new Date().toISOString();
+  const updates: Record<string, unknown> = {};
+
+  if (result.newStatus) {
+    updates.status = result.newStatus;
+    updates.status_reason = result.reason;
+
+    if (result.newStatus === 'broken') {
+      updates.broken_at = now;
+      updates.degraded_at = existing.degraded_at ?? now;
+    } else if (result.newStatus === 'degraded') {
+      updates.degraded_at = now;
+    } else if (result.newStatus === 'active') {
+      updates.degraded_at = null;
+    }
+  } else if (result.reason) {
+    updates.status_reason = result.reason;
+  }
+
+  if (Object.keys(updates).length > 0) {
+    const { error } = await client
+      .from('scraper_registry')
+      .update(updates)
+      .eq('config_id', configId);
+
+    if (error) throw new Error(`Failed to update scraper run health: ${error.message}`);
+  }
+
+  return {
+    updated: true,
+    status: result.newStatus ?? existing.status,
+    status_reason: result.reason,
+    status_changed: result.newStatus !== null,
   };
 }

@@ -3,7 +3,7 @@ import { withAuth } from '../../../src/middleware/auth.js';
 import { handleError } from '../../../src/middleware/error-handler.js';
 import { success, error } from '../../../src/lib/response.js';
 import { RunResultSchema } from '../../../src/types/operations.js';
-import { updateScraperRunResult } from '../../../src/db/scrapers.js';
+import { updateScraperRunResult, updateScraperRunHealth } from '../../../src/db/scrapers.js';
 import { storeRunReceipt } from '../../../src/db/run-receipts.js';
 
 export default withAuth(['collection'], async (req, res) => {
@@ -39,7 +39,24 @@ export default withAuth(['collection'], async (req, res) => {
       return;
     }
 
-    success(res, { receipt_id: receipt.id, ...result });
+    // Evaluate pipeline health checks using run data
+    const healthResult = await updateScraperRunHealth(configId, {
+      urls_discovered: parsed.data.urls_discovered ?? 0,
+      urls_new: parsed.data.urls_new ?? 0,
+      listings_submitted: parsed.data.listings_submitted ?? 0,
+    });
+
+    success(res, {
+      receipt_id: receipt.id,
+      ...result,
+      ...(healthResult && {
+        scraper_health: {
+          status: healthResult.status,
+          status_reason: healthResult.status_reason,
+          status_changed: healthResult.status_changed,
+        },
+      }),
+    });
   } catch (err) {
     handleError(res, err);
   }

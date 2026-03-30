@@ -41,10 +41,10 @@ const ALL_NOTICES: Notice[] = [
     expires: '2026-04-09',
   },
   {
-    id: 'scraper-health-tracking',
+    id: 'pipeline-health-tracking',
     message:
-      'The batch endpoint now tracks scraper health based on validation outcomes. Scrapers with acceptance rate below 70% are marked "degraded", below 30% "broken". Scrapers that don\'t check in for 24 hours are auto-marked "broken". Auto-recovery occurs when a healthy batch (>= 70% acceptance) is submitted. Query the scraper registry for acceptance_rate and top_rejection_rule fields.',
-    expires: '2026-04-09',
+      'Scraper health tracking now uses 6 failure checks across the full pipeline (discovery, extraction, validation, staleness). The /run endpoint now evaluates discovery and pipeline health. The batch endpoint evaluates validation health. Registration requires "expected_discovery_count" and "run_interval_hours" fields. Degraded scrapers auto-recover on a clean run; broken scrapers require manual reset. See docs/validation-rules.md for the full failure mode reference.',
+    expires: '2026-04-13',
   },
   {
     id: 'title-required',
