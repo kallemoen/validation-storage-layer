@@ -7,5 +7,11 @@
     "api/**/*.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/crons/daily-summary",
+      "schedule": "0 8 * * *"
+    }
+  ]
 }
