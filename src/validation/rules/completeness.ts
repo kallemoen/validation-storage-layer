@@ -69,3 +69,19 @@ export const hasDescription: ValidationRule = {
     return [];
   },
 };
+
+export const hasFeatures: ValidationRule = {
+  name: 'has_features',
+  check(input) {
+    const features = input.features;
+    if (!Array.isArray(features) || features.length === 0) {
+      return [{
+        field: 'features',
+        rule: 'has_features',
+        value: features ?? null,
+        detail: 'Listings should include feature tags when available.',
+      }];
+    }
+    return [];
+  },
+};

@@ -38,6 +38,7 @@ export async function insertListing(input: ListingInsertRow): Promise<{ id: stri
     title: input.title,
     description: input.description ?? null,
     images: input.images ?? null,
+    features: input.features ?? null,
     raw_data: input.raw_data,
   });
 
@@ -91,6 +92,7 @@ export async function insertListingsBatch(inputs: ListingInsertRow[]): Promise<{
     title: input.title,
     description: input.description ?? null,
     images: input.images ?? null,
+    features: input.features ?? null,
     raw_data: input.raw_data,
   }));
 

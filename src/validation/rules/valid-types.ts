@@ -33,6 +33,7 @@ const FIELD_TYPES: Record<string, 'string' | 'number' | 'integer' | 'object' | '
   title: 'string',
   description: 'string',
   images: 'array',
+  features: 'array',
   raw_data: 'object',
 };
 
