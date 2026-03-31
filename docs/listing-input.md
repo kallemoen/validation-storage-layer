@@ -56,6 +56,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
 | `title` | string (max 500) | Yes | Listing title or headline. Must be non-empty. |
 | `description` | string or null | No | Raw description. Any language, any length. |
 | `images` | string[] or null | No | Ordered array of valid image URLs. First is the hero image. |
+| `features` | string[] or null | No | Feature tags from the listing (e.g. `["garage", "pool", "elevator"]`). Encouraged — a Tier 3 warning is issued if missing. |
 | `raw_data` | object | Yes | Complete raw extraction output. Any structure. Write-once. |
 
 ---
@@ -95,6 +96,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
     "https://remax.pt/img/listing-12345/2.jpg",
     "https://remax.pt/img/listing-12345/3.jpg"
   ],
+  "features": ["elevator", "balcony", "equipped_kitchen", "city_view"],
   "raw_data": {
     "price": "1 700 €/ Mensal",
     "type": "Apartamento T2",

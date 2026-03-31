@@ -125,6 +125,38 @@ describe('validateListing', () => {
     expect(result.status).toBe('rejected');
     expect(result.tier_2_errors.some(e => e.rule === 'area_range')).toBe(true);
   });
+
+  it('accepts listing with features and no has_features warning', () => {
+    const listing = makeValidListing({ features: ['garage', 'pool'] });
+    const result = validateListing(listing, ctx, 'test');
+    expect(result.tier_3_warnings.some(w => w.rule === 'has_features')).toBe(false);
+  });
+
+  it('warns when features is null', () => {
+    const listing = makeValidListing({ features: null });
+    const result = validateListing(listing, ctx, 'test');
+    expect(result.tier_3_warnings.some(w => w.rule === 'has_features')).toBe(true);
+  });
+
+  it('warns when features is an empty array', () => {
+    const listing = makeValidListing({ features: [] });
+    const result = validateListing(listing, ctx, 'test');
+    expect(result.tier_3_warnings.some(w => w.rule === 'has_features')).toBe(true);
+  });
+
+  it('warns when features is omitted', () => {
+    const listing = makeValidListing();
+    delete listing.features;
+    const result = validateListing(listing, ctx, 'test');
+    expect(result.tier_3_warnings.some(w => w.rule === 'has_features')).toBe(true);
+  });
+
+  it('rejects when features is wrong type', () => {
+    const listing = makeValidListing({ features: 'garage' });
+    const result = validateListing(listing, ctx, 'test');
+    expect(result.status).toBe('rejected');
+    expect(result.tier_1_errors.some(e => e.rule === 'valid_type' && e.field === 'features')).toBe(true);
+  });
 });
 
 describe('validateBatch', () => {

@@ -47,6 +47,12 @@ const ALL_NOTICES: Notice[] = [
     expires: '2026-04-13',
   },
   {
+    id: 'features-field',
+    message:
+      'New optional field "features" (string array) is now available. Include listing feature tags (e.g. ["garage", "pool", "elevator"]) for richer data. A Tier 3 warning will appear if features are not provided.',
+    expires: '2026-04-14',
+  },
+  {
     id: 'title-required',
     message:
       'The "title" field is now required. Listings submitted without a non-empty title (string, max 500 chars) will be rejected at Tier 1 validation. Update your scraper to extract and include the listing title.',

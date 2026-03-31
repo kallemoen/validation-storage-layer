@@ -44,6 +44,7 @@ Does the listing conform to the data model? These check structural correctness.
 | `latitude`, `longitude`, `bathrooms`, `living_area_sqm`, `plot_area_sqm` | number |
 | `price_amount`, `bedrooms`, `total_rooms` | integer |
 | `images` | array |
+| `features` | array |
 | `raw_data` | object |
 
 ---
@@ -144,6 +145,7 @@ Does the listing have enough data to be useful? These are **not** grounds for re
 | `location_minimum` | `admin_level_3` | Should have city-level location data | `{"field": "admin_level_3", "rule": "location_minimum", "value": null, "detail": "City-level location data (admin_level_3) recommended."}` |
 | `has_images` | `images` | Should have at least one image URL | `{"field": "images", "rule": "has_images", "value": null, "detail": "Listing has no images."}` |
 | `has_description` | `description` | Should have a non-empty description | `{"field": "description", "rule": "has_description", "value": null, "detail": "Listing has no description."}` |
+| `has_features` | `features` | Should have at least one feature tag | `{"field": "features", "rule": "has_features", "value": null, "detail": "Listings should include feature tags when available."}` |
 
 ---
 
