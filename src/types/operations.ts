@@ -39,6 +39,21 @@ export const ScraperStatusUpdateSchema = z.object({
 
 export type ScraperStatusUpdateInput = z.infer<typeof ScraperStatusUpdateSchema>;
 
+// Scraper config update (partial — at least one field required)
+export const ScraperConfigUpdateSchema = z.object({
+  agency_name: z.string().max(255).optional(),
+  country_code: z.string().length(2).optional(),
+  area_key: z.string().max(255).optional(),
+  listing_type: z.enum(['sale', 'rent']).optional(),
+  config: z.record(z.unknown()).optional(),
+  expected_discovery_count: z.number().int().positive().optional(),
+  run_interval_hours: z.number().int().positive().optional(),
+}).refine(data => Object.values(data).some(v => v !== undefined), {
+  message: 'At least one field must be provided',
+});
+
+export type ScraperConfigUpdateInput = z.infer<typeof ScraperConfigUpdateSchema>;
+
 // Rejection row
 export interface RejectionRow {
   id: string;

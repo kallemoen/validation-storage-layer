@@ -726,6 +726,68 @@ The `scraper_health` field is always included. It contains:
 
 ---
 
+#### PATCH /api/scrapers/{id}/config
+
+Update a scraper's configuration fields. Use this to fix mistakes made during registration without re-registering.
+
+**Role:** `development`, `admin`
+
+**Path parameters:**
+- `id` (UUID) — The scraper config ID.
+
+**Request body:** All fields are optional — send only the fields you want to change. At least one field must be provided.
+
+```json
+{
+  "expected_discovery_count": 150,
+  "config": {
+    "currency_code": "EUR",
+    "base_url": "https://remax.pt",
+    "discovery_url": "https://remax.pt/arrendar/porto"
+  }
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `agency_name` | string | No | Human-readable agency name (max 255 chars) |
+| `country_code` | string | No | ISO 3166-1 alpha-2 code (exactly 2 chars) |
+| `area_key` | string | No | Area within the market (max 255 chars) |
+| `listing_type` | string | No | `sale` or `rent` |
+| `expected_discovery_count` | integer | No | Expected number of listings per discovery run |
+| `run_interval_hours` | integer | No | How often the scraper runs, in hours |
+| `config` | object | No | Scraper configuration (replaces entire config object) |
+
+**Note:** Updating config fields does not reset health metrics or status. The health system re-evaluates naturally on the next run.
+
+**Response (200):** The full updated scraper registry row.
+
+```json
+{
+  "success": true,
+  "data": {
+    "config_id": "a9b8c7d6-...",
+    "agency_name": "remax.pt",
+    "country_code": "PT",
+    "area_key": "Porto",
+    "listing_type": "rent",
+    "status": "active",
+    "expected_discovery_count": 150,
+    "config": { "currency_code": "EUR", ... },
+    ...
+  }
+}
+```
+
+**Error responses:**
+
+| Status | Code | Meaning |
+|---|---|---|
+| `400` | `INVALID_REQUEST` | Empty body or invalid field values |
+| `404` | `NOT_FOUND` | Scraper config ID does not exist |
+
+---
+
 #### PATCH /api/scrapers/{id}/status
 
 Update a scraper's status. Use this to reactivate a repaired scraper.
@@ -867,6 +929,7 @@ Query run receipts for recent scraper runs.
 | `/api/geography/:country_code/search` | GET | development, collection | Fuzzy-search for regions |
 | `/api/scrapers` | GET | development, collection, admin | Query scraper registry |
 | `/api/scrapers/register` | POST | development | Register a new scraper |
+| `/api/scrapers/{id}/config` | PATCH | development, admin | Update scraper config fields |
 | `/api/scrapers/{id}/run` | PATCH | collection | Record run results |
 | `/api/scrapers/{id}/status` | PATCH | development, admin | Update scraper status |
 | `/api/rejections` | GET | development, admin | Query rejection records |
