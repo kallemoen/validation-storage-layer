@@ -64,6 +64,12 @@ const ALL_NOTICES: Notice[] = [
       'New endpoint: PATCH /api/scrapers/{id}/config allows updating scraper configuration fields (agency_name, country_code, area_key, listing_type, config, expected_discovery_count, run_interval_hours) after registration. All fields are optional — send only what you want to change.',
     expires: '2026-04-18',
   },
+  {
+    id: 'search-endpoints',
+    message:
+      'New search endpoints (admin role only): POST /api/search/execute accepts {"sql": "SELECT ..."} for read-only SQL queries against the database (5s timeout, 500-row limit). GET /api/search/schema returns table/column metadata. See docs/search-guide.md for full reference.',
+    expires: '2026-04-19',
+  },
 ];
 
 export function getActiveNotices(): string[] {
