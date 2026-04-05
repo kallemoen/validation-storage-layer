@@ -58,6 +58,12 @@ const ALL_NOTICES: Notice[] = [
       'The "title" field is now required. Listings submitted without a non-empty title (string, max 500 chars) will be rejected at Tier 1 validation. Update your scraper to extract and include the listing title.',
     expires: '2026-04-10',
   },
+  {
+    id: 'scraper-config-update',
+    message:
+      'New endpoint: PATCH /api/scrapers/{id}/config allows updating scraper configuration fields (agency_name, country_code, area_key, listing_type, config, expected_discovery_count, run_interval_hours) after registration. All fields are optional — send only what you want to change.',
+    expires: '2026-04-18',
+  },
 ];
 
 export function getActiveNotices(): string[] {

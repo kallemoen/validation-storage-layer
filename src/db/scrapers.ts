@@ -1,5 +1,6 @@
 import { getSupabaseClient } from './client.js';
 import type { ScraperRegistryInput, ScraperRow } from '../types/scraper.js';
+import type { ScraperConfigUpdateInput } from '../types/operations.js';
 import type { BatchSummary } from '../types/validation.js';
 import { evaluateBatchHealth, evaluateRunHealth } from '../health/evaluate.js';
 
@@ -85,6 +86,30 @@ export async function updateScraperRunResult(
 
   if (error) throw new Error(`Failed to update scraper run result: ${error.message}`);
   return { updated: true };
+}
+
+export async function updateScraperConfig(
+  configId: string,
+  fields: ScraperConfigUpdateInput,
+): Promise<ScraperRow | null> {
+  const client = getSupabaseClient();
+  const existing = await getScraperById(configId);
+  if (!existing) return null;
+
+  const updates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== undefined) updates[key] = value;
+  }
+
+  const { data, error } = await client
+    .from('scraper_registry')
+    .update(updates)
+    .eq('config_id', configId)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update scraper config: ${error.message}`);
+  return data as ScraperRow;
 }
 
 export async function updateScraperStatus(configId: string, newStatus: string) {
