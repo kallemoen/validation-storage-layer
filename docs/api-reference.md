@@ -912,6 +912,40 @@ Query run receipts for recent scraper runs.
 
 ---
 
+## Search (Read-Only SQL)
+
+The search endpoints give admin-role consumers (e.g., AI agents) the ability to run arbitrary read-only SQL queries against the full database. This enables flexible analytics, custom filtering, cross-table joins, aggregations, and PostGIS spatial queries.
+
+For the complete reference — including the full database schema, all enum values, spatial query patterns, and 15+ example queries — see **[docs/search-guide.md](search-guide.md)**.
+
+### `POST /api/search/execute`
+
+Execute a read-only SQL query. Returns results as a JSON array.
+
+**Roles:** `admin`
+
+**Request body:**
+
+```json
+{
+  "sql": "SELECT listing_id, title, price_amount FROM listings WHERE country_code = 'PT' LIMIT 10"
+}
+```
+
+**Constraints:** Read-only only (SELECT/WITH). 5-second timeout. 500-row limit (auto-appended if no LIMIT). Max 10,000 characters.
+
+**Response:** `{ "rows": [...], "row_count": N }`
+
+### `GET /api/search/schema`
+
+Returns column metadata (names, types, nullability) for all queryable tables.
+
+**Roles:** `admin`
+
+**Response:** Array of `{ "table_name": "...", "columns": [...] }`
+
+---
+
 ## Endpoint Summary
 
 | Endpoint | Method | Role(s) | Purpose |
@@ -935,3 +969,5 @@ Query run receipts for recent scraper runs.
 | `/api/rejections` | GET | development, admin | Query rejection records |
 | `/api/rejections/summary` | GET | development, collection, admin | Rejection statistics |
 | `/api/run-receipts` | GET | development, collection, admin | Query run receipts |
+| `/api/search/execute` | POST | admin | Execute read-only SQL query |
+| `/api/search/schema` | GET | admin | Get table/column metadata |
