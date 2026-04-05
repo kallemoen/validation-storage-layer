@@ -4,7 +4,7 @@ import { handleError } from '../../src/middleware/error-handler.js';
 import { success, error } from '../../src/lib/response.js';
 import { queryScrapers } from '../../src/db/scrapers.js';
 
-export default withAuth(['development', 'collection', 'admin'], async (req, res) => {
+export default withAuth(['development', 'collection', 'admin', 'reader'], async (req, res) => {
   if (req.method !== 'GET') {
     error(res, 'METHOD_NOT_ALLOWED', 'Only GET is allowed', 405);
     return;

@@ -53,7 +53,7 @@ vercel deploy
 
 API consumers authenticate with JWTs that contain an `app_role` claim. To create a key:
 
-1. Choose the appropriate role: `development`, `collection`, or `admin`.
+1. Choose the appropriate role: `development`, `collection`, `admin`, or `reader`. Use `reader` for AI agents and external consumers that only need to query data.
 2. Generate a JWT signed with your `SUPABASE_JWT_SECRET` (HS256) containing:
 
 ```json

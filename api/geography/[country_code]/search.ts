@@ -23,7 +23,7 @@ function buildPath(region: AdminRegion, byId: Map<number, AdminRegion>): string 
   return parts.join(' > ');
 }
 
-export default withAuth(['development', 'collection'], async (req, res) => {
+export default withAuth(['development', 'collection', 'reader'], async (req, res) => {
   if (req.method !== 'GET') {
     error(res, 'METHOD_NOT_ALLOWED', 'Only GET is allowed', 405);
     return;

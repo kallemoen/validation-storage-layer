@@ -16,13 +16,14 @@ All endpoints require a JWT Bearer token in the `Authorization` header.
 Authorization: Bearer <token>
 ```
 
-The JWT must contain an `app_role` claim with one of three values:
+The JWT must contain an `app_role` claim with one of four values:
 
 | Role | Description | Typical consumer |
 |---|---|---|
 | `development` | Build and test scrapers | Scraper-building agents |
 | `collection` | Submit live data and manage runs | Collection layer / orchestrator |
 | `admin` | Full read access, manage registry | Owner / dashboard |
+| `reader` | Read-only access to GET endpoints and search | AI agents / external consumers |
 
 Tokens are verified against the `SUPABASE_JWT_SECRET` environment variable using the HS256 algorithm.
 
@@ -317,7 +318,7 @@ The `scraper_health` field is **always** included in the batch response. It eval
 
 Query stored listings with optional filters.
 
-**Role:** `development`, `collection`, `admin`
+**Role:** `development`, `collection`, `admin`, `reader`
 
 **Query parameters:**
 
@@ -453,7 +454,7 @@ Update the status of an existing listing.
 
 Browse the admin region hierarchy for a supported country. Returns the full region tree by default, or a filtered subset.
 
-**Role:** `development`, `collection`
+**Role:** `development`, `collection`, `reader`
 
 **Path parameters:**
 - `country_code` — ISO 3166-1 alpha-2 code (e.g., `PT`).
@@ -527,7 +528,7 @@ If neither `level` nor `parent` is provided, the full hierarchy tree is returned
 
 Fuzzy-search for regions within a country. Returns matching regions with their full ancestry path.
 
-**Role:** `development`, `collection`
+**Role:** `development`, `collection`, `reader`
 
 **Path parameters:**
 - `country_code` — ISO 3166-1 alpha-2 code.
@@ -567,7 +568,7 @@ Fuzzy-search for regions within a country. Returns matching regions with their f
 
 Query the scraper registry.
 
-**Role:** `development`, `collection`, `admin`
+**Role:** `development`, `collection`, `admin`, `reader`
 
 **Query parameters:**
 
@@ -819,7 +820,7 @@ Update a scraper's status. Use this to reactivate a repaired scraper.
 
 Query recent rejection records.
 
-**Role:** `development`, `admin`
+**Role:** `development`, `admin`, `reader`
 
 **Query parameters:**
 
@@ -863,7 +864,7 @@ Query recent rejection records.
 
 Get aggregate rejection statistics.
 
-**Role:** `development`, `collection`, `admin`
+**Role:** `development`, `collection`, `admin`, `reader`
 
 **Query parameters:**
 
@@ -895,7 +896,7 @@ Get aggregate rejection statistics.
 
 Query run receipts for recent scraper runs.
 
-**Role:** `development`, `collection`, `admin`
+**Role:** `development`, `collection`, `admin`, `reader`
 
 **Query parameters:**
 
@@ -914,7 +915,7 @@ Query run receipts for recent scraper runs.
 
 ## Search (Read-Only SQL)
 
-The search endpoints give admin-role consumers (e.g., AI agents) the ability to run arbitrary read-only SQL queries against the full database. This enables flexible analytics, custom filtering, cross-table joins, aggregations, and PostGIS spatial queries.
+The search endpoints give admin- and reader-role consumers (e.g., AI agents) the ability to run arbitrary read-only SQL queries against the full database. This enables flexible analytics, custom filtering, cross-table joins, aggregations, and PostGIS spatial queries.
 
 For the complete reference — including the full database schema, all enum values, spatial query patterns, and 15+ example queries — see **[docs/search-guide.md](search-guide.md)**.
 
@@ -922,7 +923,7 @@ For the complete reference — including the full database schema, all enum valu
 
 Execute a read-only SQL query. Returns results as a JSON array.
 
-**Roles:** `admin`
+**Roles:** `admin`, `reader`
 
 **Request body:**
 
@@ -940,7 +941,7 @@ Execute a read-only SQL query. Returns results as a JSON array.
 
 Returns column metadata (names, types, nullability) for all queryable tables.
 
-**Roles:** `admin`
+**Roles:** `admin`, `reader`
 
 **Response:** Array of `{ "table_name": "...", "columns": [...] }`
 
@@ -953,21 +954,21 @@ Returns column metadata (names, types, nullability) for all queryable tables.
 | `/api/validate/test` | POST | development | Validate without storing |
 | `/api/validate/test-batch` | POST | development | Batch validate without storing |
 | `/api/validate/replay/{id}` | POST | development | Re-validate a previous rejection |
-| `/api/listings` | GET | development, collection, admin | Query stored listings |
+| `/api/listings` | GET | development, collection, admin, reader | Query stored listings |
 | `/api/listings` | POST | collection | Validate + store a listing |
 | `/api/listings/batch` | POST | collection | Batch validate + store |
 | `/api/listings/check-urls` | POST | collection | Check URLs for duplicates |
 | `/api/listings/{id}/price` | PATCH | collection | Update price (auto history) |
 | `/api/listings/{id}/status` | PATCH | collection | Update listing status |
-| `/api/geography/:country_code` | GET | development, collection | Browse admin region hierarchy |
-| `/api/geography/:country_code/search` | GET | development, collection | Fuzzy-search for regions |
-| `/api/scrapers` | GET | development, collection, admin | Query scraper registry |
+| `/api/geography/:country_code` | GET | development, collection, reader | Browse admin region hierarchy |
+| `/api/geography/:country_code/search` | GET | development, collection, reader | Fuzzy-search for regions |
+| `/api/scrapers` | GET | development, collection, admin, reader | Query scraper registry |
 | `/api/scrapers/register` | POST | development | Register a new scraper |
 | `/api/scrapers/{id}/config` | PATCH | development, admin | Update scraper config fields |
 | `/api/scrapers/{id}/run` | PATCH | collection | Record run results |
 | `/api/scrapers/{id}/status` | PATCH | development, admin | Update scraper status |
-| `/api/rejections` | GET | development, admin | Query rejection records |
-| `/api/rejections/summary` | GET | development, collection, admin | Rejection statistics |
-| `/api/run-receipts` | GET | development, collection, admin | Query run receipts |
-| `/api/search/execute` | POST | admin | Execute read-only SQL query |
-| `/api/search/schema` | GET | admin | Get table/column metadata |
+| `/api/rejections` | GET | development, admin, reader | Query rejection records |
+| `/api/rejections/summary` | GET | development, collection, admin, reader | Rejection statistics |
+| `/api/run-receipts` | GET | development, collection, admin, reader | Query run receipts |
+| `/api/search/execute` | POST | admin, reader | Execute read-only SQL query |
+| `/api/search/schema` | GET | admin, reader | Get table/column metadata |
