@@ -67,7 +67,13 @@ const ALL_NOTICES: Notice[] = [
   {
     id: 'search-endpoints',
     message:
-      'New search endpoints (admin role only): POST /api/search/execute accepts {"sql": "SELECT ..."} for read-only SQL queries against the database (5s timeout, 500-row limit). GET /api/search/schema returns table/column metadata. See docs/search-guide.md for full reference.',
+      'Search endpoints (admin and reader roles): POST /api/search/execute accepts {"sql": "SELECT ..."} for read-only SQL queries against the database (5s timeout, 500-row limit). GET /api/search/schema returns table/column metadata. See docs/search-guide.md for full reference.',
+    expires: '2026-04-19',
+  },
+  {
+    id: 'reader-role',
+    message:
+      'New "reader" role provides read-only access to all GET endpoints and search endpoints. Use this role for AI agents and external consumers that only need to query data. Search endpoints no longer require admin role.',
     expires: '2026-04-19',
   },
 ];

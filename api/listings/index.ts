@@ -12,7 +12,7 @@ import { loadGeographyLookup } from '../../src/validation/config/geography-looku
 import type { ListingInput } from '../../src/types/listing.js';
 import { enrichLocation, DisplayCoordinateError, OceanCoordinateError } from '../../src/enrichment/location-enricher.js';
 
-export default withAuth(['development', 'collection', 'admin'], async (req, res) => {
+export default withAuth(['development', 'collection', 'admin', 'reader'], async (req, res) => {
   try {
     if (req.method === 'GET') {
       return await handleGet(req, res);

@@ -5,7 +5,7 @@ import { success, error } from '../../src/lib/response.js';
 import { ExecuteQuerySchema } from '../../src/types/search.js';
 import { executeReadonlyQuery } from '../../src/db/search.js';
 
-export default withAuth(['admin'], async (req, res) => {
+export default withAuth(['admin', 'reader'], async (req, res) => {
   if (req.method !== 'POST') {
     error(res, 'METHOD_NOT_ALLOWED', 'Only POST is allowed', 405);
     return;

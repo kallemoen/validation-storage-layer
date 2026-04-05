@@ -54,5 +54,5 @@ async function extractRole(token: string): Promise<AppRole | null> {
 }
 
 function isValidRole(role: string): role is AppRole {
-  return ['development', 'collection', 'admin'].includes(role);
+  return ['development', 'collection', 'admin', 'reader'].includes(role);
 }

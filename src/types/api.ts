@@ -9,7 +9,7 @@ export interface ApiResponse<T = unknown> {
   notices?: string[];
 }
 
-export type AppRole = 'development' | 'collection' | 'admin';
+export type AppRole = 'development' | 'collection' | 'admin' | 'reader';
 
 export interface AuthenticatedRequest {
   appRole: AppRole;

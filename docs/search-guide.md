@@ -25,7 +25,7 @@ You have **read-only SQL access** to all of this data via two API endpoints.
 
 Execute an arbitrary read-only SQL query.
 
-**Auth:** `admin` role only (JWT Bearer token with `app_role: "admin"`)
+**Auth:** `admin` or `reader` role (JWT Bearer token with `app_role: "admin"` or `"reader"`)
 
 **Request:**
 
@@ -63,7 +63,7 @@ Execute an arbitrary read-only SQL query.
 |--------|------|-------|
 | 400 | `INVALID_REQUEST` | Missing or invalid `sql` field |
 | 401 | `UNAUTHORIZED` | Missing or invalid token |
-| 403 | `FORBIDDEN` | Token role is not `admin` |
+| 403 | `FORBIDDEN` | Token role is not `admin` or `reader` |
 | 500 | `INTERNAL_ERROR` | Query execution failed (prohibited keyword, timeout, syntax error, etc.) |
 
 The error message from the database is included, so you can see whether it was a syntax error, a prohibited keyword, or a timeout.
@@ -72,7 +72,7 @@ The error message from the database is included, so you can see whether it was a
 
 Returns column metadata for all queryable tables. Useful for discovering column names and types before writing SQL.
 
-**Auth:** `admin` role only
+**Auth:** `admin` or `reader` role
 
 **Response:**
 

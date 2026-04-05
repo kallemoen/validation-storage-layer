@@ -4,7 +4,7 @@ import { handleError } from '../../src/middleware/error-handler.js';
 import { success, error } from '../../src/lib/response.js';
 import { getTableSchema } from '../../src/db/search.js';
 
-export default withAuth(['admin'], async (req, res) => {
+export default withAuth(['admin', 'reader'], async (req, res) => {
   if (req.method !== 'GET') {
     error(res, 'METHOD_NOT_ALLOWED', 'Only GET is allowed', 405);
     return;
