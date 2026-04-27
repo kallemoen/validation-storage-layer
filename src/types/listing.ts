@@ -45,7 +45,7 @@ export const ListingInputSchema = z.object({
   property_type: z.enum(PROPERTY_TYPES),
   property_subtype: z.string().max(100).nullable().optional(),
   raw_property_type: z.string().max(500).nullable().optional(),
-  title: z.string().min(1).max(500),
+  title: z.string().trim().min(1).max(500),
   description: z.string().nullable().optional(),
   images: z.array(z.string().url()).nullable().optional(),
   features: z.array(z.string()).nullable().optional(),

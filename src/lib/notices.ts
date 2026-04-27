@@ -53,10 +53,10 @@ const ALL_NOTICES: Notice[] = [
     expires: '2026-04-14',
   },
   {
-    id: 'title-required',
+    id: 'title-nonempty',
     message:
-      'The "title" field is now required. Listings submitted without a non-empty title (string, max 500 chars) will be rejected at Tier 1 validation. Update your scraper to extract and include the listing title.',
-    expires: '2026-04-10',
+      'The "title" field is now trimmed before validation, and titles that are empty or whitespace-only are rejected at Tier 1. A matching DB CHECK constraint blocks the same case at the storage layer. Ensure your scraper sends a real, non-empty title.',
+    expires: '2026-05-11',
   },
   {
     id: 'scraper-config-update',
