@@ -224,6 +224,16 @@ The system evaluates scraper health through 6 failure mode checks across the ful
 
 ---
 
+## Listing Lifecycle — Automatic Expiry
+
+A daily Supabase cron (`dispatch_listing_url_checks` at 04:00 UTC, `process_listing_url_check_results` at 05:00 UTC) polls every `active` listing's `source_url` via `pg_net`. Listings whose URL responds with HTTP **404** or **410** are automatically transitioned to `listing_status = 'expired'`.
+
+Other failures (5xx, timeouts, network errors, 403/429 from bot protection) are deliberately ignored — only definitive "gone" signals trigger expiry. The `last_url_check_at` column on `listings` records when each URL was last polled.
+
+To revive an expired listing, re-submit it via `POST /api/listings/batch` (a `sold` or `delisted` status set manually is also untouched — the cron only acts on `active` rows).
+
+---
+
 ## Adding New Rules
 
 To add a new validation rule:

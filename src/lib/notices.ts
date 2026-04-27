@@ -76,6 +76,12 @@ const ALL_NOTICES: Notice[] = [
       'New "reader" role provides read-only access to all GET endpoints and search endpoints. Use this role for AI agents and external consumers that only need to query data. Search endpoints no longer require admin role.',
     expires: '2026-04-19',
   },
+  {
+    id: 'auto-expire-dead-listings',
+    message:
+      'Listings whose source_url returns HTTP 404 or 410 are now automatically marked as listing_status="expired" by a daily Supabase cron. Other failures (5xx, timeouts, 403/429) are ignored to avoid false positives. A new last_url_check_at timestamp records when each URL was last polled. Re-submit the listing to revive it if it comes back online.',
+    expires: '2026-05-11',
+  },
 ];
 
 export function getActiveNotices(): string[] {
