@@ -29,7 +29,8 @@ The core table. One row per unique property listing.
 | `config_id` | UUID | No | — | FK to `scraper_registry`. Which scraper found this listing. |
 | `listing_type` | VARCHAR(20) | No | — | `sale` or `rent`. |
 | `rent_period` | VARCHAR(20) | Yes | — | `monthly`, `weekly`, or `daily`. **Required when `listing_type = 'rent'`**, must be null when `sale`. |
-| `listing_status` | VARCHAR(20) | No | `active` | `active`, `sold`, `delisted`, or `expired`. |
+| `listing_status` | VARCHAR(20) | No | `active` | `active`, `sold`, `delisted`, or `expired`. Auto-set to `expired` when `source_url` returns HTTP 404/410 (daily cron). |
+| `last_url_check_at` | TIMESTAMPTZ | Yes | — | When `source_url` was last polled by the dead-listing cron. Null until the first check runs. |
 | `created_at` | TIMESTAMPTZ | No | `now()` | When first stored. Never modified. |
 | `updated_at` | TIMESTAMPTZ | No | `now()` | Last modification time. |
 
@@ -230,6 +231,8 @@ One row per rejected listing. Stores the full submitted data and detailed valida
 
 ### listing_status
 `active`, `sold`, `delisted`, `expired`
+
+`expired` is set automatically by a daily Supabase cron when the listing's `source_url` returns HTTP 404 or 410. Other failures are ignored.
 
 ### property_type
 `house`, `apartment`, `land`, `commercial`, `mixed_use`, `parking`, `other`

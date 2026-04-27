@@ -446,6 +446,12 @@ Update the status of an existing listing.
 }
 ```
 
+#### Automatic expiry
+
+A daily Supabase cron polls every `active` listing's `source_url`. Listings that respond with HTTP `404` or `410` are automatically transitioned to `listing_status = 'expired'`. Other failures (5xx, timeouts, network errors, 403/429 from bot protection) are ignored — only definitive "gone" signals trigger expiry.
+
+The `last_url_check_at` column on `listings` records when each URL was last polled. To revive a listing that is back online, re-submit it via `POST /api/listings/batch`.
+
 ---
 
 ### Geography
