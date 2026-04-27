@@ -53,7 +53,7 @@ This is the object that scrapers produce and submit to the API. It is the contra
 | `property_subtype` | string (max 100) or null | No | Market-specific subtype (e.g., `single_family`, `condo`, `riad`). |
 | `raw_property_type` | string (max 500) or null | No | Exact source text. |
 | **Content** | | | |
-| `title` | string (max 500) | Yes | Listing title or headline. Must be non-empty. |
+| `title` | string (max 500) | Yes | Listing title or headline. Trimmed before validation; must be non-empty after trimming. |
 | `description` | string or null | No | Raw description. Any language, any length. |
 | `images` | string[] or null | No | Ordered array of valid image URLs. First is the hero image. |
 | `features` | string[] or null | No | Feature tags from the listing (e.g. `["garage", "pool", "elevator"]`). Encouraged — a Tier 3 warning is issued if missing. |

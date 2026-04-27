@@ -34,6 +34,7 @@ Does the listing conform to the data model? These check structural correctness.
 | `valid_enum` | `listing_type`, `rent_period`, `listing_status`, `property_type`, `location_granularity` | Must be one of the allowed values (skips null/undefined) | `{"field": "listing_type", "rule": "valid_enum", "value": "lease", "expected": "One of: sale, rent"}` |
 | `valid_type` | All fields | Must match the declared type (string, number, integer, object, array) | `{"field": "bedrooms", "rule": "valid_type", "value": "three", "expected": "integer"}` |
 | `valid_url` | `source_url`, each item in `images` | Must be a parseable URL | `{"field": "images[2]", "rule": "valid_url", "value": "not-a-url"}` |
+| `nonempty_title` | `title` | After trimming leading/trailing whitespace, must be ≥ 1 character. Also enforced at the DB level by the `listings_title_nonempty` CHECK constraint. | `{"field": "title", "rule": "nonempty_title", "value": "   "}` |
 | `rent_period_required` | `rent_period` | Must be non-null when `listing_type` is `rent` | `{"field": "rent_period", "rule": "rent_period_required", "value": null}` |
 
 ### Expected field types
